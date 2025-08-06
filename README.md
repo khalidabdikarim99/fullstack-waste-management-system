@@ -1,0 +1,1 @@
+# fullstack-waste-management-system
