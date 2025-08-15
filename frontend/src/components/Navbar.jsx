@@ -79,9 +79,7 @@ const Navbar = () => {
           <Link to="/login" className="bg-green-500 text-white px-4 py-1 rounded hover:bg-green-400 transition">
             Login
           </Link>
-          <Link to="/signup" className="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-500 transition">
-            Signup
-          </Link>
+         
         </div>
 
         {/* Mobile Menu Icon */}
