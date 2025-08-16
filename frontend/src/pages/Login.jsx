@@ -63,7 +63,7 @@ const Login = () => {
           'Accept': 'application/json'
         },
         body: JSON.stringify({
-          username: formData.email,
+          email: formData.email, // ✅ fixed key
           password: formData.password
         })
       });

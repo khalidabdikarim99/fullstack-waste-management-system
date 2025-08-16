@@ -8,6 +8,7 @@ from email.mime.multipart import MIMEMultipart
 from email.header import Header
 import os
 from dotenv import load_dotenv
+from threading import Thread
 
 # Load environment variables from .env
 load_dotenv()
@@ -22,17 +23,18 @@ if not SENDER_EMAIL or not APP_PASSWORD:
     raise ValueError("MAIL_USERNAME and MAIL_PASSWORD must be set in your .env file")
 
 
-def send_welcome_email(to_email, name):
+def send_welcome_email(to_email, name, role):
     """
     Sends a welcome email to the newly registered user.
     Handles UTF-8 characters (like emojis) properly.
     """
-    subject = "Welcome to Waste2WealthHub!"
+    subject = f"Welcome to Waste2WealthHub! - Registered as {role.capitalize()}"
     body = f"""
 Hi {name},
 
 🎉 Welcome to Waste2WealthHub!
-Your account has been successfully created.
+
+You have successfully registered as a {role.capitalize()}.
 
 You can now log in and access your dashboard.
 
@@ -61,6 +63,11 @@ Waste2WealthHub Team
         print(f"❌ Failed to send email: {str(e)}")
 
 
+def send_welcome_email_async(to_email, name, role):
+    """Send welcome email in background thread to avoid blocking"""
+    Thread(target=send_welcome_email, args=(to_email, name, role), daemon=True).start()
+
+
 @auth_bp.route("/signup", methods=["POST"])
 def signup():
     data = request.get_json()
@@ -86,8 +93,8 @@ def signup():
     db.session.add(user)
     db.session.commit()
 
-    # Send welcome email
-    send_welcome_email(email, user.name)
+    # Send welcome email asynchronously
+    send_welcome_email_async(email, user.name, user.role)
 
     # Generate JWT
     token = generate_jwt(user)
@@ -102,7 +109,7 @@ def signup():
 @auth_bp.route("/login", methods=["POST"])
 def login():
     data = request.get_json()
-    email = data.get("email")
+    email = data.get("email")      # FIXED: Use 'email' instead of 'username'
     password = data.get("password")
 
     if not email or not password:
