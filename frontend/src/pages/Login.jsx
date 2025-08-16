@@ -6,27 +6,35 @@ const API_URL = 'http://127.0.0.1:5000';
 
 const Login = () => {
   const navigate = useNavigate();
-
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     rememberMe: false
   });
-
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
 
+  // Check auth status with slight delay
   useEffect(() => {
-    const loggedInUser = JSON.parse(localStorage.getItem('user')) || JSON.parse(sessionStorage.getItem('user'));
-    if (loggedInUser) {
-      switch (loggedInUser.role) {
-        case 'admin': navigate('/admin/dashboard'); break;
-        case 'recycler': navigate('/recycler/dashboard'); break;
-        case 'collector': navigate('/collector/dashboard'); break;
-        case 'employer': navigate('/employer/dashboard'); break;
-        default: navigate('/user/dashboard');
+    const timer = setTimeout(() => {
+      const storedUser = JSON.parse(localStorage.getItem('user')) || JSON.parse(sessionStorage.getItem('user'));
+      const storedToken = localStorage.getItem('token') || sessionStorage.getItem('token');
+
+      if (storedUser && storedToken) {
+        // Redirect based on role
+        switch (storedUser.role) {
+          case 'admin': navigate('/admin/dashboard'); break;
+          case 'recycler': navigate('/recycler/dashboard'); break;
+          case 'collector': navigate('/collector/dashboard'); break;
+          case 'employer': navigate('/employer/dashboard'); break;
+          default: navigate('/user/dashboard');
+        }
       }
-    }
+      setAuthChecked(true);
+    }, 100);
+
+    return () => clearTimeout(timer);
   }, [navigate]);
 
   const handleChange = (e) => {
@@ -68,6 +76,10 @@ const Login = () => {
         return;
       }
 
+      // Always clear both storages first (avoid "sticking")
+      localStorage.clear();
+      sessionStorage.clear();
+
       if (formData.rememberMe) {
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
@@ -79,7 +91,7 @@ const Login = () => {
       Swal.fire({
         icon: 'success',
         title: 'Login Successful',
-        text: `Welcome back, ${data.user.first_name || ''}!`,
+        text: `Welcome back, ${data.user.name || ''}!`,
         timer: 2000,
         showConfirmButton: false,
       });
@@ -100,6 +112,19 @@ const Login = () => {
       setLoading(false);
     }
   };
+
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="text-center">
+          <div className="spinner-border text-green-500" role="status">
+            <span className="sr-only">Loading...</span>
+          </div>
+          <p className="mt-2 text-gray-600">Checking authentication...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-white text-gray-800 px-4 py-8">

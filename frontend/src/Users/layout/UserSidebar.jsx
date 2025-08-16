@@ -33,8 +33,8 @@ const Sidebar = () => {
       icon: <PickupIcon />, 
       path: '/user/pickups',
       subItems: [
-        { name: 'New Request', path: '/user/pickups/new' },
-        { name: 'My Requests', path: '/user/pickups/history' }
+        { name: 'New Request', path: '/user/usernewrequest' },
+        { name: 'My Requests', path: '/user/userhistoryrequest' }
       ]
     },
     { name: 'Dropoff Points', icon: <LocationIcon />, path: '/user/locations' },

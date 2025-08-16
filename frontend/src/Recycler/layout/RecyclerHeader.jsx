@@ -12,17 +12,20 @@ const RecyclerHeader = () => {
   const [userName, setUserName] = useState('');
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
+    const storedUser = localStorage.getItem('user') || sessionStorage.getItem('user');
     if (storedUser) {
       const user = JSON.parse(storedUser);
-      setUserName(user.first_name + ' ' + user.last_name);
+      setUserName(user.firstname);
     }
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-    navigate('/login');
+    // Clear both storage locations
+    localStorage.clear();
+    sessionStorage.clear();
+
+    // Redirect to home page
+    navigate('/');
   };
 
   return (
@@ -52,7 +55,10 @@ const RecyclerHeader = () => {
             <span className="text-sm font-medium">{userName || 'Recycler'}</span>
           </div>
 
-          <button onClick={handleLogout} className="text-gray-500 hover:text-red-500 flex items-center space-x-1">
+          <button 
+            onClick={handleLogout} 
+            className="text-gray-500 hover:text-red-500 flex items-center space-x-1"
+          >
             <LogoutIcon fontSize="small" />
             <span className="text-sm">Logout</span>
           </button>

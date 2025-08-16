@@ -12,17 +12,25 @@ const CollectorHeader = () => {
   const [userName, setUserName] = useState('');
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
+    // Check sessionStorage first, then localStorage
+    const storedUser = sessionStorage.getItem('user') || localStorage.getItem('user');
     if (storedUser) {
-      const user = JSON.parse(storedUser);
-      setUserName(user.first_name + ' ' + user.last_name);
+      try {
+        const user = JSON.parse(storedUser);
+        if (user?.first_name && user?.last_name) {
+          setUserName(user.first_name + ' ' + user.last_name);
+        }
+      } catch (err) {
+        console.error("Error parsing stored user:", err);
+      }
     }
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-    navigate('/login');
+    // Clear everything on logout
+    localStorage.clear();
+    sessionStorage.clear();
+    navigate('/');
   };
 
   return (

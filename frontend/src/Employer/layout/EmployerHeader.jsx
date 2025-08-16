@@ -12,22 +12,36 @@ const EmployerHeader = () => {
   const [userName, setUserName] = useState('');
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
+    // Check localStorage first, then fallback to sessionStorage
+    const storedUser = localStorage.getItem('user') || sessionStorage.getItem('user');
+
     if (storedUser) {
-      const user = JSON.parse(storedUser);
-      setUserName(user.first_name + ' ' + user.last_name);
+      try {
+        const user = JSON.parse(storedUser);
+        if (user.first_name && user.last_name) {
+          setUserName(user.first_name + ' ' + user.last_name);
+        } else {
+          setUserName(user.name || 'Employer');
+        }
+      } catch (e) {
+        console.error("Invalid user data in storage", e);
+      }
     }
   }, []);
 
   const handleLogout = () => {
+    // Clear both storages
     localStorage.removeItem('user');
     localStorage.removeItem('token');
+    sessionStorage.removeItem('user');
+    sessionStorage.removeItem('token');
     navigate('/login');
   };
 
   return (
     <header className="bg-white shadow-sm">
       <div className="flex items-center justify-between px-6 py-4">
+        {/* Search Bar */}
         <div className="relative w-1/3">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <SearchIcon className="text-gray-400" />
@@ -39,12 +53,15 @@ const EmployerHeader = () => {
           />
         </div>
 
+        {/* Right Section */}
         <div className="flex items-center space-x-6">
+          {/* Notifications */}
           <button className="relative text-gray-500 hover:text-gray-700">
             <NotificationsIcon />
             <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
           </button>
 
+          {/* User Info */}
           <div className="flex items-center space-x-2">
             <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white">
               <BusinessIcon />
@@ -52,7 +69,11 @@ const EmployerHeader = () => {
             <span className="text-sm font-medium">{userName || 'Employer'}</span>
           </div>
 
-          <button onClick={handleLogout} className="text-gray-500 hover:text-red-500 flex items-center space-x-1">
+          {/* Logout */}
+          <button 
+            onClick={handleLogout} 
+            className="text-gray-500 hover:text-red-500 flex items-center space-x-1"
+          >
             <LogoutIcon fontSize="small" />
             <span className="text-sm">Logout</span>
           </button>

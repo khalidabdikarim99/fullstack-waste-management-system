@@ -54,6 +54,8 @@ import Contributions from './Users/pages/Contributions';
 import Rewards from './Users/pages/Rewards';
 import Learning from './Users/pages/Learning';
 import Support from './Users/pages/Support';
+import UserHistoryRequest from './Users/pages/UserHistoryRequest';
+import UserNewRequest from './Users/pages/UserNewRequest';
 
 // Collector
 import CollectorLayout from './Collector/layout/CollectorLayout';
@@ -86,6 +88,7 @@ import EmployerOrders from './Employer/pages/ Orders';
 import EmployerReports from './Employer/pages/Reports';
 import EmployerMessages from './Employer/pages/Messages';
 import EmployerProfile from './Employer/pages/Profile';
+
 
 // Public layout wrapper
 const PublicRouteWrapper = ({ children }) => (
@@ -160,6 +163,8 @@ const App = () => {
           <Route path="rewards" element={<Rewards />} />
           <Route path="learning" element={<Learning />} />
           <Route path="support" element={<Support />} />
+          <Route path="userhistoryrequest" element={<UserHistoryRequest />} />
+          <Route path="usernewrequest" element={<UserNewRequest/>} />
         </Route>
 
         {/* Collector Routes */}

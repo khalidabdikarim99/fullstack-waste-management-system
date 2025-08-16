@@ -12,13 +12,17 @@ const Header = () => {
   const [userName, setUserName] = useState('');
 
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem('user')) || JSON.parse(sessionStorage.getItem('user'));
+    // Priority: localStorage (Remember me) → sessionStorage (session only)
+    const user = JSON.parse(localStorage.getItem('user')) 
+              || JSON.parse(sessionStorage.getItem('user'));
+
     if (user && user.name) {
       setUserName(user.name);
     }
   }, []);
 
   const handleLogout = () => {
+    // Wipe both storages
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     sessionStorage.removeItem('token');

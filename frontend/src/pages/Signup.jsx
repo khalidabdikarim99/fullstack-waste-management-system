@@ -1,3 +1,4 @@
+// Signup.js
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
@@ -86,28 +87,17 @@ const Signup = () => {
 
       if (!res.ok) throw new Error(data.error || "Signup failed");
 
-      // Save token & user data
-      if (data.token) {
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
-      }
-
       Swal.fire({
         icon: 'success',
         title: 'Account Created',
         text: data.message || 'Your account was created successfully!',
         timer: 2000,
         showConfirmButton: false,
+      }).then(() => {
+        // Redirect to login page after successful signup
+        navigate('/login');
       });
 
-      // Redirect based on role
-      switch(formData.userType) {
-        case 'admin': navigate('/admin/dashboard'); break;
-        case 'recycler': navigate('/recycler/dashboard'); break;
-        case 'collector': navigate('/collector/dashboard'); break;
-        case 'employer': navigate('/employer/dashboard'); break;
-        default: navigate('/user/dashboard');
-      }
     } catch (error) {
       console.error("Signup error:", error);
       Swal.fire('Error', error.message || 'Signup failed. Please try again.', 'error');

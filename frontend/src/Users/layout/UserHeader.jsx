@@ -12,7 +12,8 @@ const Header = () => {
   const [userName, setUserName] = useState('');
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
+    // Check localStorage first, then fallback to sessionStorage
+    const storedUser = localStorage.getItem('user') || sessionStorage.getItem('user');
     if (storedUser) {
       const user = JSON.parse(storedUser);
       setUserName(user.first_name + ' ' + user.last_name);
@@ -20,8 +21,11 @@ const Header = () => {
   }, []);
 
   const handleLogout = () => {
+    // Clear both storages completely
     localStorage.removeItem('user');
     localStorage.removeItem('token');
+    sessionStorage.removeItem('user');
+    sessionStorage.removeItem('token');
     navigate('/login');
   };
 
