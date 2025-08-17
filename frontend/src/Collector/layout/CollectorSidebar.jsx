@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
-  Schedule as ScheduleIcon,
-  Map as MapIcon,
-  Notifications as NotificationsIcon,
-  History as HistoryIcon,
-  Chat as ChatIcon,
-  AttachMoney as EarningsIcon,
+  Home as HomeIcon,
   Person as ProfileIcon,
-  Settings as SettingsIcon,
+  Assignment as RequestsIcon,
+  CheckCircle as CompletedIcon,
+  Place as LocationIcon,
+  Route as RouteIcon,
+  MonetizationOn as EarningsIcon,
+  Help as SupportIcon,
   ChevronLeft,
   ChevronRight,
   ExpandMore,
@@ -25,58 +25,21 @@ const CollectorSidebar = () => {
   };
 
   const menuItems = [
-    {
-      name: 'Pickup Schedule',
-      icon: <ScheduleIcon />,
-      path: '/collector/schedule',
+    { name: 'Dashboard', icon: <HomeIcon />, path: '/collector/dashboard' },
+    { name: 'Profile', icon: <ProfileIcon />, path: '/collector/profile' },
+    { 
+      name: 'Pickup Management', 
+      icon: <RequestsIcon />, 
+      path: '/collector/pickups',
       subItems: [
-        { name: 'Daily Pickups', path: '/collector/schedule/daily' },
-        { name: 'Weekly View', path: '/collector/schedule/weekly' },
-        { name: 'Map Routes', path: '/collector/schedule/map' }
+        { name: 'Assigned Requests', path: '/collector/pickups/assigned' },
+        { name: 'Completed Requests', path: '/collector/pickups/completed' }
       ]
     },
-    {
-      name: 'Notifications',
-      icon: <NotificationsIcon />,
-      path: '/collector/notifications',
-      subItems: [
-        { name: 'New Requests', path: '/collector/notifications/requests' },
-        { name: 'Urgent Alerts', path: '/collector/notifications/alerts' }
-      ]
-    },
-    {
-      name: 'Collection History',
-      icon: <HistoryIcon />,
-      path: '/collector/history',
-      subItems: [
-        { name: 'All Collections', path: '/collector/history/all' },
-        { name: 'Export Reports', path: '/collector/history/reports' }
-      ]
-    },
-    {
-      name: 'Communication',
-      icon: <ChatIcon />,
-      path: '/collector/communication',
-      subItems: [
-        { name: 'Contact Users', path: '/collector/communication/users' },
-        { name: 'Contact Recyclers', path: '/collector/communication/recyclers' }
-      ]
-    },
-    {
-      name: 'Earnings',
-      icon: <EarningsIcon />,
-      path: '/collector/earnings'
-    },
-    {
-      name: 'Profile & Settings',
-      icon: <ProfileIcon />,
-      path: '/collector/profile',
-      subItems: [
-        { name: 'Personal Details', path: '/collector/profile/details' },
-        { name: 'Availability', path: '/collector/profile/availability' },
-        { name: 'Preferences', path: '/collector/profile/preferences' }
-      ]
-    }
+    { name: 'Dropoff Points', icon: <LocationIcon />, path: '/collector/locations' },
+    { name: 'Routes & Scheduling', icon: <RouteIcon />, path: '/collector/routes' },
+    { name: 'Earnings', icon: <EarningsIcon />, path: '/collector/earnings' },
+    { name: 'Support', icon: <SupportIcon />, path: '/collector/support' }
   ];
 
   return (

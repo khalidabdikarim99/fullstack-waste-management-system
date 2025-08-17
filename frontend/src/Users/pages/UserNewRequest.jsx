@@ -30,6 +30,9 @@ import {
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 
+// ✅ API base URL
+const API_BASE_URL = "http://127.0.0.1:5000/api";
+
 const wasteTypes = [
   'Plastic',
   'Paper',
@@ -75,16 +78,32 @@ const UserNewRequest = () => {
       quantity: 1
     },
     validationSchema,
-    onSubmit: (values) => {
+    onSubmit: async (values, { resetForm }) => {
       setIsSubmitting(true);
-      // Simulate API call
-      setTimeout(() => {
-        console.log('Submitted:', { ...values, photo });
+      try {
+        const response = await fetch(`${API_BASE_URL}/collection-request`, { // ✅ match Flask route
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ ...values, photo: photo ? photo.name : null })
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to submit request");
+        }
+
+        const data = await response.json();
+        console.log("Submitted:", data);
+
         setIsSubmitting(false);
         setSuccess(true);
-        formik.resetForm();
+        resetForm();
         setPhoto(null);
-      }, 1500);
+      } catch (error) {
+        console.error("Error submitting request:", error);
+        setIsSubmitting(false);
+      }
     }
   });
 
@@ -107,9 +126,9 @@ const UserNewRequest = () => {
       }}>
         <Typography variant="h4" component="h1" gutterBottom sx={{ 
           fontWeight: 'bold',
-          color: 'rgb(34, 197, 94)', // green-500
+          color: 'rgb(34, 197, 94)', 
           '& .MuiSvgIcon-root': {
-            color: 'rgb(34, 197, 94)' // green-500 for icon
+            color: 'rgb(34, 197, 94)' 
           }
         }}>
           <SubmitIcon sx={{ verticalAlign: 'middle', mr: 1 }} />
@@ -144,7 +163,7 @@ const UserNewRequest = () => {
                     <MenuItem key={type} value={type}>{type}</MenuItem>
                   ))}
                 </Select>
-                <FormHelperText sx={{ color: 'rgb(239, 68, 68)' }}> {/* red-500 */}
+                <FormHelperText sx={{ color: 'rgb(239, 68, 68)' }}>
                   {formik.touched.wasteType && formik.errors.wasteType}
                 </FormHelperText>
               </FormControl>
@@ -168,7 +187,7 @@ const UserNewRequest = () => {
                 helperText={formik.touched.quantity && formik.errors.quantity}
                 FormHelperTextProps={{
                   sx: {
-                    color: 'rgb(239, 68, 68)' // red-500
+                    color: 'rgb(239, 68, 68)'
                   }
                 }}
               />
@@ -180,13 +199,13 @@ const UserNewRequest = () => {
                 fullWidth
                 id="collectionDate"
                 name="collectionDate"
+                type="date"
                 label={
                   <Box display="flex" alignItems="center">
                     <DateIcon sx={{ mr: 1, fontSize: 20, color: 'action.active' }} />
                     Collection Date
                   </Box>
                 }
-                type="date"
                 InputLabelProps={{ shrink: true }}
                 value={formik.values.collectionDate}
                 onChange={formik.handleChange}
@@ -195,7 +214,7 @@ const UserNewRequest = () => {
                 helperText={formik.touched.collectionDate && formik.errors.collectionDate}
                 FormHelperTextProps={{
                   sx: {
-                    color: 'rgb(239, 68, 68)' // red-500
+                    color: 'rgb(239, 68, 68)'
                   }
                 }}
               />
@@ -207,13 +226,13 @@ const UserNewRequest = () => {
                 fullWidth
                 id="collectionTime"
                 name="collectionTime"
+                type="time"
                 label={
                   <Box display="flex" alignItems="center">
                     <TimeIcon sx={{ mr: 1, fontSize: 20, color: 'action.active' }} />
                     Collection Time
                   </Box>
                 }
-                type="time"
                 InputLabelProps={{ shrink: true }}
                 value={formik.values.collectionTime}
                 onChange={formik.handleChange}
@@ -222,7 +241,7 @@ const UserNewRequest = () => {
                 helperText={formik.touched.collectionTime && formik.errors.collectionTime}
                 FormHelperTextProps={{
                   sx: {
-                    color: 'rgb(239, 68, 68)' // red-500
+                    color: 'rgb(239, 68, 68)'
                   }
                 }}
               />
@@ -245,7 +264,7 @@ const UserNewRequest = () => {
                     <MenuItem key={freq} value={freq}>{freq}</MenuItem>
                   ))}
                 </Select>
-                <FormHelperText sx={{ color: 'rgb(239, 68, 68)' }}> {/* red-500 */}
+                <FormHelperText sx={{ color: 'rgb(239, 68, 68)' }}>
                   {formik.touched.frequency && formik.errors.frequency}
                 </FormHelperText>
               </FormControl>
@@ -272,7 +291,7 @@ const UserNewRequest = () => {
                 rows={3}
                 FormHelperTextProps={{
                   sx: {
-                    color: 'rgb(239, 68, 68)' // red-500
+                    color: 'rgb(239, 68, 68)'
                   }
                 }}
               />
@@ -329,7 +348,7 @@ const UserNewRequest = () => {
                 placeholder="Any special instructions for the collector..."
                 FormHelperTextProps={{
                   sx: {
-                    color: 'rgb(239, 68, 68)' // red-500
+                    color: 'rgb(239, 68, 68)'
                   }
                 }}
               />
@@ -345,10 +364,10 @@ const UserNewRequest = () => {
                   startIcon={isSubmitting ? <CircularProgress size={20} color="inherit" /> : <SubmitIcon />}
                   disabled={isSubmitting}
                   sx={{
-                    backgroundColor: 'rgb(34, 197, 94)', // green-500
+                    backgroundColor: 'rgb(34, 197, 94)',
                     color: 'white',
                     '&:hover': {
-                      backgroundColor: 'rgb(22, 163, 74)' // green-600
+                      backgroundColor: 'rgb(22, 163, 74)'
                     }
                   }}
                 >
@@ -373,7 +392,7 @@ const UserNewRequest = () => {
           icon={<SuccessIcon fontSize="inherit" />}
           sx={{ 
             width: '100%',
-            backgroundColor: 'rgb(34, 197, 94)', // green-500
+            backgroundColor: 'rgb(34, 197, 94)',
             color: 'white'
           }}
         >
