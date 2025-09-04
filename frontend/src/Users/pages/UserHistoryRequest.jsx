@@ -137,7 +137,12 @@ const UserHistoryRequest = () => {
       try {
         await axios.put(
           `${API_URL}/pickup-request/${selectedRequest.id}`,
-          selectedRequest,
+          {
+            quantity: selectedRequest.quantity,
+            location: selectedRequest.location,
+            notes: selectedRequest.notes,
+            image_url: selectedRequest.image_url,
+          },
           { headers }
         );
         Swal.fire("Success", "Pickup request updated successfully.", "success");
@@ -200,6 +205,9 @@ const UserHistoryRequest = () => {
                 <Table stickyHeader>
                   <TableHead>
                     <TableRow>
+                      <TableCell>Name</TableCell>
+                      <TableCell>Email</TableCell>
+                      <TableCell>Phone</TableCell>
                       <TableCell>Quantity (kg)</TableCell>
                       <TableCell>Location</TableCell>
                       <TableCell>Notes</TableCell>
@@ -210,6 +218,9 @@ const UserHistoryRequest = () => {
                   <TableBody>
                     {pickupRequests.map((row) => (
                       <TableRow key={row.id}>
+                        <TableCell>{row.user_name}</TableCell>
+                        <TableCell>{row.user_email}</TableCell>
+                        <TableCell>{row.user_phone}</TableCell>
                         <TableCell>{row.quantity}</TableCell>
                         <TableCell>{row.location}</TableCell>
                         <TableCell>{row.notes}</TableCell>
@@ -256,6 +267,9 @@ const UserHistoryRequest = () => {
                 <Table stickyHeader>
                   <TableHead>
                     <TableRow>
+                      <TableCell>Name</TableCell>
+                      <TableCell>Email</TableCell>
+                      <TableCell>Phone</TableCell>
                       <TableCell>Waste Type</TableCell>
                       <TableCell>Quantity</TableCell>
                       <TableCell>Amount Paid</TableCell>
@@ -266,6 +280,9 @@ const UserHistoryRequest = () => {
                   <TableBody>
                     {confirmations.map((row) => (
                       <TableRow key={row.id}>
+                        <TableCell>{row.user_name}</TableCell>
+                        <TableCell>{row.user_email}</TableCell>
+                        <TableCell>{row.user_phone}</TableCell>
                         <TableCell>{row.waste_type}</TableCell>
                         <TableCell>{row.quantity}</TableCell>
                         <TableCell>{row.amount_paid}</TableCell>
@@ -291,6 +308,9 @@ const UserHistoryRequest = () => {
                 <Table stickyHeader>
                   <TableHead>
                     <TableRow>
+                      <TableCell>Name</TableCell>
+                      <TableCell>Email</TableCell>
+                      <TableCell>Phone</TableCell>
                       <TableCell>Location</TableCell>
                       <TableCell>Notes</TableCell>
                       <TableCell>Actions</TableCell>
@@ -299,6 +319,9 @@ const UserHistoryRequest = () => {
                   <TableBody>
                     {reports.map((row) => (
                       <TableRow key={row.id}>
+                        <TableCell>{row.user_name}</TableCell>
+                        <TableCell>{row.user_email}</TableCell>
+                        <TableCell>{row.user_phone}</TableCell>
                         <TableCell>{row.location}</TableCell>
                         <TableCell>{row.notes}</TableCell>
                         <TableCell>

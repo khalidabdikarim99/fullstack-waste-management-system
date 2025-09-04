@@ -31,13 +31,18 @@ def create_pickup_report():
 def get_my_reports():
     identity = get_jwt_identity()
     reports = PickupReport.query.filter_by(user_id=identity["id"]).all()
-    result = [
-        {
+    result = []
+
+    for r in reports:
+        user = getattr(r, "user", None)  # Assuming PickupReport has a relationship to User
+        result.append({
             "id": r.id,
             "location": r.location,
-            "notes": r.notes
-        } for r in reports
-    ]
+            "notes": r.notes,
+            "user_name": getattr(user, "name", "") if user else "",
+            "user_email": getattr(user, "email", "") if user else "",
+            "user_phone": getattr(user, "phone", "") if user else "",  # safe fallback
+        })
     return jsonify(result), 200
 
 # ---------------- Get Single Report ----------------
@@ -46,10 +51,14 @@ def get_my_reports():
 @jwt_required()
 def get_single_report(id):
     r = PickupReport.query.get_or_404(id)
+    user = getattr(r, "user", None)
     return jsonify({
         "id": r.id,
         "location": r.location,
-        "notes": r.notes
+        "notes": r.notes,
+        "user_name": getattr(user, "name", "") if user else "",
+        "user_email": getattr(user, "email", "") if user else "",
+        "user_phone": getattr(user, "phone", "") if user else "",
     }), 200
 
 # ---------------- Edit Report ----------------

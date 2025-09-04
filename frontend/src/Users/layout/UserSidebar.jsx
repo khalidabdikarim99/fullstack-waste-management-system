@@ -48,7 +48,7 @@ const Sidebar = () => {
       ]
     },
     { name: 'My Contributions', icon: <ContributionsIcon />, path: '/user/contributions' },
-    { name: 'Rewards', icon: <RewardsIcon />, path: '/user/rewards' },
+    { name: 'Rewards & Notifications', icon: <RewardsIcon />, path: '/user/rewards' },
     { 
       name: 'Learning', 
       icon: <LearningIcon />, 
