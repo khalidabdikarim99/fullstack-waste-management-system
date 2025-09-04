@@ -1,20 +1,54 @@
+// src/User/pages/Dashboard.jsx
 import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 import { 
   LocalShipping as PickupIcon,
   Place as LocationIcon,
-  CardGiftcard as RewardsIcon,
-  Recycling as RecyclingIcon
+  AssignmentTurnedIn as ConfirmationIcon,
+  Report as ReportIcon
 } from '@mui/icons-material';
+
+const API_URL = "http://127.0.0.1:5000"; // Flask backend
 
 const Dashboard = () => {
   const [userName, setUserName] = useState("");
+  const [totals, setTotals] = useState({
+    pickups: 0,
+    confirmations: 0,
+    reports: 0
+  });
+
+  const token = localStorage.getItem("token");
+  const headers = { Authorization: `Bearer ${token}` };
 
   useEffect(() => {
+    // Get user info
     const storedUser = JSON.parse(localStorage.getItem("user"));
     if (storedUser && storedUser.name) {
       setUserName(storedUser.name);
     }
-  }, []);
+
+    // Fetch totals from backend
+    const fetchTotals = async () => {
+      try {
+        const [pickupRes, confirmRes, reportRes] = await Promise.all([
+          axios.get(`${API_URL}/pickup-request/me`, { headers }),
+          axios.get(`${API_URL}/pickup-confirmation/me`, { headers }),
+          axios.get(`${API_URL}/pickup-report/me`, { headers })
+        ]);
+
+        setTotals({
+          pickups: pickupRes.data.length,
+          confirmations: confirmRes.data.length,
+          reports: reportRes.data.length
+        });
+      } catch (err) {
+        console.error("Error fetching dashboard totals:", err);
+      }
+    };
+
+    if (token) fetchTotals();
+  }, [token]);
 
   return (
     <div>
@@ -27,38 +61,38 @@ const Dashboard = () => {
           <div className="flex items-center">
             <PickupIcon className="text-green-500 mr-3" />
             <div>
-              <h3 className="text-gray-500 text-sm font-medium">Scheduled Pickups</h3>
-              <p className="text-2xl font-bold text-gray-800">3</p>
+              <h3 className="text-gray-500 text-sm font-medium">Total Pickup Requests</h3>
+              <p className="text-2xl font-bold text-gray-800">{totals.pickups}</p>
             </div>
           </div>
         </div>
         
         <div className="bg-white p-6 rounded-lg shadow border-l-4 border-blue-500">
           <div className="flex items-center">
-            <LocationIcon className="text-blue-500 mr-3" />
+            <ConfirmationIcon className="text-blue-500 mr-3" />
             <div>
-              <h3 className="text-gray-500 text-sm font-medium">Nearby Drop-offs</h3>
-              <p className="text-2xl font-bold text-gray-800">5</p>
+              <h3 className="text-gray-500 text-sm font-medium">Total Confirmations</h3>
+              <p className="text-2xl font-bold text-gray-800">{totals.confirmations}</p>
             </div>
           </div>
         </div>
         
-        <div className="bg-white p-6 rounded-lg shadow border-l-4 border-yellow-500">
+        <div className="bg-white p-6 rounded-lg shadow border-l-4 border-red-500">
           <div className="flex items-center">
-            <RewardsIcon className="text-yellow-500 mr-3" />
+            <ReportIcon className="text-red-500 mr-3" />
             <div>
-              <h3 className="text-gray-500 text-sm font-medium">Reward Points</h3>
-              <p className="text-2xl font-bold text-gray-800">1,250</p>
+              <h3 className="text-gray-500 text-sm font-medium">Total Reports</h3>
+              <p className="text-2xl font-bold text-gray-800">{totals.reports}</p>
             </div>
           </div>
         </div>
         
         <div className="bg-white p-6 rounded-lg shadow border-l-4 border-purple-500">
           <div className="flex items-center">
-            <RecyclingIcon className="text-purple-500 mr-3" />
+            <PickupIcon className="text-purple-500 mr-3" />
             <div>
-              <h3 className="text-gray-500 text-sm font-medium">Total Recycled</h3>
-              <p className="text-2xl font-bold text-gray-800">42kg</p>
+              <h3 className="text-gray-500 text-sm font-medium">Nearby Drop-offs</h3>
+              <p className="text-2xl font-bold text-gray-800">5</p> {/* Static placeholder, can integrate later */}
             </div>
           </div>
         </div>
@@ -67,12 +101,12 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white p-6 rounded-lg shadow">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">Recent Activity</h3>
-          {/* Activity list would go here */}
+          {/* Optionally, fetch recent activity from backend */}
         </div>
         
         <div className="bg-white p-6 rounded-lg shadow">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">Environmental Impact</h3>
-          {/* Impact visualization would go here */}
+          {/* Optionally, show total recycled quantity */}
         </div>
       </div>
     </div>

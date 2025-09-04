@@ -5,8 +5,7 @@ import {
   Box, Typography, TextField, Button, Grid, Card, CardContent, Tabs, Tab, AppBar,
 } from "@mui/material";
 import {
-  LocalShipping, AssignmentTurnedIn, Report, Person, Email, Phone, Scale, LocationOn, Image,
-  Description, Category, AttachMoney, CalendarToday, CheckCircle, Warning, Recycling
+  LocalShipping, AssignmentTurnedIn, Report, Person, Recycling, CheckCircle, Warning
 } from "@mui/icons-material";
 import Swal from "sweetalert2";
 
@@ -51,7 +50,8 @@ const PickupRequest = () => {
       setPickupData({ quantity: "", location: "", image_url: "", notes: "" });
     } catch (error) {
       console.error(error);
-      Swal.fire("Error", "Failed to submit pickup request.", "error");
+      const message = error.response?.data?.message || "Failed to submit pickup request. Please try again.";
+      Swal.fire("Error", message, "error");
     }
   };
 
@@ -65,7 +65,8 @@ const PickupRequest = () => {
       });
     } catch (error) {
       console.error(error);
-      Swal.fire("Error", "Failed to submit pickup confirmation.", "error");
+      const message = error.response?.data?.message || "Failed to submit pickup confirmation. Please try again.";
+      Swal.fire("Error", message, "error");
     }
   };
 
@@ -77,7 +78,8 @@ const PickupRequest = () => {
       setReportData({ location: "", notes: "" });
     } catch (error) {
       console.error(error);
-      Swal.fire("Error", "Failed to submit report.", "error");
+      const message = error.response?.data?.message || "Failed to submit report. Please try again.";
+      Swal.fire("Error", message, "error");
     }
   };
 
@@ -173,7 +175,6 @@ const PickupRequest = () => {
                 <AssignmentTurnedIn className="text-3xl" /> Pickup Confirmation Form
               </Typography>
               <form onSubmit={handleConfirmationSubmit}>
-                {/* ...confirmation fields stay the same */}
                 <Grid container spacing={3}>
                   <Grid item xs={12} md={6}><TextField label="Waste Type" name="waste_type" value={confirmationData.waste_type} onChange={handleConfirmationChange} fullWidth required /></Grid>
                   <Grid item xs={12} md={6}><TextField label="Quantity (kg)" name="quantity" type="number" value={confirmationData.quantity} onChange={handleConfirmationChange} fullWidth required /></Grid>

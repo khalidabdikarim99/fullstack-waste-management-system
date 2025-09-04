@@ -73,13 +73,17 @@ const UserHistoryRequest = () => {
     if (token) fetchHistory();
   }, [token]);
 
-  // Handle opening edit dialog
+  // ---------------- Handlers ----------------
   const handleEditClick = (request) => {
-    setSelectedRequest({ ...request });
+    setSelectedRequest({ ...request, type: "pickup" });
     setEditDialogOpen(true);
   };
 
-  // Handle deleting a pickup request
+  const handleEditReportClick = (report) => {
+    setSelectedRequest({ ...report, type: "report" });
+    setEditDialogOpen(true);
+  };
+
   const handleDeleteClick = async (id) => {
     const result = await Swal.fire({
       title: "Are you sure?",
@@ -101,26 +105,62 @@ const UserHistoryRequest = () => {
     }
   };
 
-  // Handle changes in edit form
+  const handleDeleteReport = async (id) => {
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: "This will permanently delete your report.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, delete it!",
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await axios.delete(`${API_URL}/pickup-report/${id}`, { headers });
+        Swal.fire("Deleted!", "Your report has been deleted.", "success");
+        fetchHistory();
+      } catch (err) {
+        console.error("Delete error:", err);
+        Swal.fire("Error", "Failed to delete report.", "error");
+      }
+    }
+  };
+
   const handleEditChange = (e) => {
     setSelectedRequest((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  // Handle saving edited pickup request
   const handleEditSave = async () => {
-    try {
-      await axios.put(
-        `${API_URL}/pickup-request/${selectedRequest.id}`,
-        selectedRequest,
-        { headers }
-      );
-      Swal.fire("Success", "Pickup request updated successfully.", "success");
-      setEditDialogOpen(false);
-      fetchHistory();
-    } catch (err) {
-      console.error("Update error:", err);
-      Swal.fire("Error", "Failed to update request.", "error");
+    if (!selectedRequest) return;
+
+    if (selectedRequest.type === "pickup") {
+      try {
+        await axios.put(
+          `${API_URL}/pickup-request/${selectedRequest.id}`,
+          selectedRequest,
+          { headers }
+        );
+        Swal.fire("Success", "Pickup request updated successfully.", "success");
+      } catch (err) {
+        console.error("Update error:", err);
+        Swal.fire("Error", "Failed to update request.", "error");
+      }
+    } else if (selectedRequest.type === "report") {
+      try {
+        await axios.put(
+          `${API_URL}/pickup-report/${selectedRequest.id}`,
+          { location: selectedRequest.location, notes: selectedRequest.notes },
+          { headers }
+        );
+        Swal.fire("Success", "Report updated successfully.", "success");
+      } catch (err) {
+        console.error("Update error:", err);
+        Swal.fire("Error", "Failed to update report.", "error");
+      }
     }
+
+    setEditDialogOpen(false);
+    fetchHistory();
   };
 
   const tableStyle = { maxHeight: 400 };
@@ -253,6 +293,7 @@ const UserHistoryRequest = () => {
                     <TableRow>
                       <TableCell>Location</TableCell>
                       <TableCell>Notes</TableCell>
+                      <TableCell>Actions</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -260,6 +301,18 @@ const UserHistoryRequest = () => {
                       <TableRow key={row.id}>
                         <TableCell>{row.location}</TableCell>
                         <TableCell>{row.notes}</TableCell>
+                        <TableCell>
+                          <Tooltip title="Edit">
+                            <IconButton onClick={() => handleEditReportClick(row)}>
+                              <EditIcon color="primary" />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Delete">
+                            <IconButton onClick={() => handleDeleteReport(row.id)}>
+                              <DeleteIcon color="error" />
+                            </IconButton>
+                          </Tooltip>
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -271,18 +324,10 @@ const UserHistoryRequest = () => {
 
         {/* Edit Dialog */}
         <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)}>
-          <DialogTitle>Edit Pickup Request</DialogTitle>
+          <DialogTitle>Edit {selectedRequest?.type === "report" ? "Report" : "Pickup Request"}</DialogTitle>
           <DialogContent className="space-y-4">
             {selectedRequest && (
               <>
-                <TextField
-                  label="Quantity"
-                  name="quantity"
-                  type="number"
-                  fullWidth
-                  value={selectedRequest.quantity}
-                  onChange={handleEditChange}
-                />
                 <TextField
                   label="Location"
                   name="location"
@@ -299,6 +344,16 @@ const UserHistoryRequest = () => {
                   value={selectedRequest.notes}
                   onChange={handleEditChange}
                 />
+                {selectedRequest.type === "pickup" && (
+                  <TextField
+                    label="Quantity"
+                    name="quantity"
+                    type="number"
+                    fullWidth
+                    value={selectedRequest.quantity}
+                    onChange={handleEditChange}
+                  />
+                )}
               </>
             )}
           </DialogContent>
@@ -306,7 +361,11 @@ const UserHistoryRequest = () => {
             <Button onClick={() => setEditDialogOpen(false)} color="secondary">
               Cancel
             </Button>
-            <Button onClick={handleEditSave} color="primary" variant="contained">
+            <Button
+              onClick={handleEditSave}
+              color="primary"
+              variant="contained"
+            >
               Save
             </Button>
           </DialogActions>
