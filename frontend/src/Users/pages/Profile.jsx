@@ -1,262 +1,466 @@
 import React, { useState, useEffect } from "react";
+import Swal from "sweetalert2";
+import { useNavigate } from "react-router-dom";
+
+// Import Material-UI icons using default imports to avoid issues
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import EmailIcon from "@mui/icons-material/Email";
+import PhoneIcon from "@mui/icons-material/Phone";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
+import SecurityIcon from "@mui/icons-material/Security";
+import EditIcon from "@mui/icons-material/Edit";
+import SaveIcon from "@mui/icons-material/Save";
+import CancelIcon from "@mui/icons-material/Cancel";
+import LockIcon from "@mui/icons-material/Lock";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
+import RecycleIcon from "@mui/icons-material/Recycling";
+import EcoIcon from "@mui/icons-material/Nature";
+import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
+import TrendingUpIcon from "@mui/icons-material/TrendingUp";
+
+const API_URL = "http://127.0.0.1:5000";
 
 const Profile = () => {
-  const userId = 1; // Example logged-in user
-  const [profile, setProfile] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    address: "",
-    profilePicture: "",
-    notifications: {
-      email: true,
-      sms: false,
-      app: true
-    }
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [formData, setFormData] = useState({});
+  const [passwordData, setPasswordData] = useState({
+    old_password: "",
+    new_password: "",
+    confirm_password: "",
   });
-  const [editMode, setEditMode] = useState(false);
-  const [passwordData, setPasswordData] = useState({ 
-    old_password: "", 
-    new_password: "" 
+  const [showPasswords, setShowPasswords] = useState({
+    old_password: false,
+    new_password: false,
+    confirm_password: false,
   });
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [previewImage, setPreviewImage] = useState("");
 
+  const navigate = useNavigate();
+
+  // =====================================================
+  //                  LOAD USER PROFILE
+  // =====================================================
   useEffect(() => {
-    // Mock API call
-    const mockProfile = {
-      name: "John Doe",
-      email: "john@waste2wealth.com",
-      phone: "+1234567890",
-      address: "123 Green St, Eco City",
-      profilePicture: "",
-      notifications: {
-        email: true,
-        sms: false,
-        app: true
+    const fetchProfile = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          navigate("/login");
+          return;
+        }
+
+        const res = await fetch(`${API_URL}/auth/profile/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        // Handle invalid/expired token (422 or 401)
+        if (res.status === 401 || res.status === 422) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          Swal.fire("Session Expired", "Please log in again.", "warning");
+          navigate("/login");
+          return;
+        }
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to load profile");
+
+        setProfile(data);
+        setFormData(data);
+      } catch (err) {
+        Swal.fire("Error", err.message, "error");
+      } finally {
+        setLoading(false);
       }
     };
-    setProfile(mockProfile);
-  }, []);
 
-  const handleUpdateProfile = () => {
-    setEditMode(false);
-    alert("Profile updated successfully!");
+    fetchProfile();
+  }, [navigate]);
+
+  // =====================================================
+  //                  HANDLE PROFILE UPDATES
+  // =====================================================
+  const handleChange = (e) => {
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleChangePassword = () => {
-    alert("Password updated successfully!");
-    setPasswordData({ old_password: "", new_password: "" });
-  };
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${API_URL}/auth/profile/update`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(formData),
+      });
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setSelectedFile(file);
-      setPreviewImage(URL.createObjectURL(file));
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Update failed");
+
+      Swal.fire("Success", "Profile updated successfully!", "success");
+      setProfile(data);
+      setEditing(false);
+      localStorage.setItem("user", JSON.stringify(data));
+    } catch (err) {
+      Swal.fire("Error", err.message, "error");
     }
   };
 
-  const handleUploadImage = () => {
-    if (selectedFile) {
-      alert("Profile picture updated successfully!");
-      setProfile({ ...profile, profilePicture: previewImage });
-      setSelectedFile(null);
+  // =====================================================
+  //                  HANDLE PASSWORD CHANGE
+  // =====================================================
+  const handlePasswordChange = (e) => {
+    setPasswordData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const togglePasswordVisibility = (field) => {
+    setShowPasswords((prev) => ({
+      ...prev,
+      [field]: !prev[field],
+    }));
+  };
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+
+    if (passwordData.new_password !== passwordData.confirm_password) {
+      return Swal.fire("Error", "New passwords do not match", "error");
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${API_URL}/auth/change-password`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(passwordData),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Password change failed");
+
+      Swal.fire("Success", "Password changed successfully!", "success");
+      setPasswordData({ old_password: "", new_password: "", confirm_password: "" });
+      setChangingPassword(false);
+    } catch (err) {
+      Swal.fire("Error", err.message, "error");
     }
   };
 
-  const toggleNotification = (type) => {
-    setProfile({
-      ...profile,
-      notifications: {
-        ...profile.notifications,
-        [type]: !profile.notifications[type]
-      }
-    });
-  };
+  // =====================================================
+  //                  RENDER UI
+  // =====================================================
+  if (loading) return (
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
+        <p className="mt-4 text-gray-600">Loading your profile...</p>
+      </div>
+    </div>
+  );
+  
+  if (!profile) return (
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center">
+      <p className="text-center text-red-500 bg-white p-8 rounded-xl shadow-lg">No profile found. Please try logging in again.</p>
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-gray-100 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="bg-gray-900 text-white rounded-t-xl px-6 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold flex items-center">
-            <span className="text-green-500">User</span>
-            <span className="mx-1 text-white">Profile</span>
-          </h1>
-          {editMode ? (
-            <button 
-              onClick={handleUpdateProfile}
-              className="bg-green-600 hover:bg-green-700 text-white px-4 py-1 rounded transition-colors"
-            >
-              Save Changes
-            </button>
-          ) : (
-            <button 
-              onClick={() => setEditMode(true)}
-              className="bg-green-600 hover:bg-green-700 text-white px-4 py-1 rounded transition-colors"
-            >
-              Edit Profile
-            </button>
-          )}
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 py-10 px-4">
+      <div className="max-w-6xl mx-auto">
+        {/* Waste2Wealth Information Section */}
+        <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-8">
+          <div className="bg-gradient-to-r from-green-600 to-teal-600 p-6 text-white">
+            <h1 className="text-3xl font-bold flex items-center gap-2">
+              <RecycleIcon className="text-4xl" /> Waste2Wealth
+            </h1>
+            <p className="mt-2 text-green-100">Transforming waste into valuable resources</p>
+          </div>
+          <div className="p-6 grid md:grid-cols-2 gap-6">
+            <div className="flex items-start gap-4">
+              <div className="bg-green-100 p-3 rounded-full">
+                <EcoIcon className="text-green-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-800">Environmental Impact</h3>
+                <p className="text-gray-600 mt-1">Reduce landfill waste by recycling and upcycling materials into valuable products.</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-4">
+              <div className="bg-blue-100 p-3 rounded-full">
+                <AttachMoneyIcon className="text-blue-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-800">Economic Opportunity</h3>
+                <p className="text-gray-600 mt-1">Create sustainable income sources by transforming waste materials into sellable products.</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-4">
+              <div className="bg-teal-100 p-3 rounded-full">
+                <TrendingUpIcon className="text-teal-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-800">Community Growth</h3>
+                <p className="text-gray-600 mt-1">Build a circular economy where waste becomes a resource for community development.</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-4">
+              <div className="bg-amber-100 p-3 rounded-full">
+                <SecurityIcon className="text-amber-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-800">Your Role</h3>
+                <p className="text-gray-600 mt-1 capitalize">As a {profile?.role || "member"}, you're contributing to a sustainable future.</p>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div className="bg-white shadow-lg rounded-b-xl overflow-hidden">
-          {/* Personal Information Section */}
-          <div className="px-6 py-5 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-              <span className="w-1 h-6 bg-green-500 mr-2"></span>
-              Personal Information
+        {/* Profile Section */}
+        <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6 text-white">
+            <h2 className="text-2xl font-bold flex items-center gap-2">
+              <AccountCircleIcon className="text-3xl" /> My Profile
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {["name", "email", "phone", "address"].map((field) => (
-                <div key={field} className="space-y-1">
-                  <label className="block text-sm font-medium text-gray-700 capitalize">
-                    {field}
-                  </label>
-                  <input
-                    type={field === 'email' ? 'email' : 'text'}
-                    value={profile[field] || ""}
-                    onChange={(e) => setProfile({ ...profile, [field]: e.target.value })}
-                    disabled={!editMode}
-                    className={`w-full px-4 py-2 rounded-lg border ${
-                      editMode 
-                        ? 'border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-green-500' 
-                        : 'border-transparent bg-gray-50'
-                    }`}
-                  />
-                </div>
-              ))}
-            </div>
+            <p className="mt-1 text-blue-100">Manage your account information and security</p>
           </div>
 
-          {/* Profile Picture Section */}
-          <div className="px-6 py-5 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-              <span className="w-1 h-6 bg-green-500 mr-2"></span>
-              Profile Picture
-            </h2>
-            <div className="flex items-center space-x-6">
-              <div className="relative">
-                <div className="w-24 h-24 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center">
-                  {previewImage || profile.profilePicture ? (
-                    <img 
-                      src={previewImage || profile.profilePicture} 
-                      alt="Profile" 
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <span className="text-3xl font-semibold text-gray-500">
-                      {profile?.name?.charAt(0)?.toUpperCase() || 'U'}
-                    </span>
-                  )}
-                </div>
-                {editMode && (
-                  <div className="absolute -bottom-2 -right-2">
-                    <label className="bg-green-600 text-white p-1 rounded-full cursor-pointer hover:bg-green-700">
-                      <input 
-                        type="file" 
-                        className="hidden" 
-                        accept="image/*"
-                        onChange={handleFileChange}
-                      />
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-1.121-1.121A2 2 0 0011.172 3H8.828a2 2 0 00-1.414.586L6.293 4.707A1 1 0 015.586 5H4zm6 9a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
-                      </svg>
-                    </label>
+          <div className="p-6 md:p-8">
+            {/* --- PROFILE INFO / EDIT FORM --- */}
+            {!editing ? (
+              <div className="space-y-6">
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-lg">
+                    <AccountCircleIcon className="text-blue-500 mt-1" />
+                    <div>
+                      <p className="text-sm text-gray-500">Name</p>
+                      <p className="text-lg font-semibold">{profile?.name || "N/A"}</p>
+                    </div>
                   </div>
-                )}
-              </div>
-              {editMode && selectedFile && (
-                <div className="space-y-2">
+                  <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-lg">
+                    <EmailIcon className="text-blue-500 mt-1" />
+                    <div>
+                      <p className="text-sm text-gray-500">Email</p>
+                      <p className="text-lg font-semibold">{profile?.email || "N/A"}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-lg">
+                    <PhoneIcon className="text-blue-500 mt-1" />
+                    <div>
+                      <p className="text-sm text-gray-500">Phone Number</p>
+                      <p className="text-lg font-semibold">{profile?.phone_number || "N/A"}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-lg">
+                    <LocationOnIcon className="text-blue-500 mt-1" />
+                    <div>
+                      <p className="text-sm text-gray-500">Address</p>
+                      <p className="text-lg font-semibold">{profile?.address || "N/A"}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-lg">
+                  <SecurityIcon className="text-blue-500 mt-1" />
+                  <div>
+                    <p className="text-sm text-gray-500">Role</p>
+                    <p className="text-lg font-semibold capitalize">{profile?.role || "N/A"}</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
                   <button
-                    onClick={handleUploadImage}
-                    className="px-4 py-1 bg-green-600 hover:bg-green-700 text-white rounded transition-colors text-sm"
+                    onClick={() => setEditing(true)}
+                    className="bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-semibold transition duration-300 flex items-center justify-center gap-2"
                   >
-                    Upload Picture
+                    <EditIcon /> Edit Profile
                   </button>
                   <button
-                    onClick={() => {
-                      setSelectedFile(null);
-                      setPreviewImage("");
-                    }}
-                    className="px-4 py-1 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded transition-colors text-sm ml-2"
+                    onClick={() => setChangingPassword(true)}
+                    className="bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-lg font-semibold transition duration-300 flex items-center justify-center gap-2"
                   >
-                    Cancel
+                    <LockIcon /> Change Password
                   </button>
                 </div>
-              )}
-            </div>
-          </div>
-
-          {/* Change Password Section */}
-          <div className="px-6 py-5 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-              <span className="w-1 h-6 bg-green-500 mr-2"></span>
-              Change Password
-            </h2>
-            <div className="space-y-4 max-w-md">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Current Password
-                </label>
-                <input
-                  type="password"
-                  value={passwordData.old_password}
-                  placeholder="Enter current password"
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                  onChange={(e) => setPasswordData({ ...passwordData, old_password: e.target.value })}
-                />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  New Password
-                </label>
-                <input
-                  type="password"
-                  value={passwordData.new_password}
-                  placeholder="Enter new password"
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                  onChange={(e) => setPasswordData({ ...passwordData, new_password: e.target.value })}
-                />
-              </div>
-              <button
-                onClick={handleChangePassword}
-                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded transition-colors"
-                disabled={!passwordData.old_password || !passwordData.new_password}
-              >
-                Update Password
-              </button>
-            </div>
-          </div>
-
-          {/* Notification Settings */}
-          <div className="px-6 py-5">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-              <span className="w-1 h-6 bg-green-500 mr-2"></span>
-              Notification Settings
-            </h2>
-            <div className="space-y-3">
-              {Object.entries(profile.notifications || {}).map(([type, enabled]) => (
-                <div key={type} className="flex items-center justify-between">
-                  <label className="text-sm font-medium text-gray-700 capitalize">
-                    {type} Notifications
-                  </label>
-                  <button
-                    onClick={() => toggleNotification(type)}
-                    className={`relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 ${
-                      enabled ? 'bg-green-600' : 'bg-gray-200'
-                    }`}
-                  >
-                    <span
-                      className={`inline-block w-4 h-4 transform transition rounded-full bg-white ${
-                        enabled ? 'translate-x-6' : 'translate-x-1'
-                      }`}
+            ) : (
+              <form onSubmit={handleUpdate} className="space-y-6">
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
+                      <AccountCircleIcon className="text-gray-500 text-lg" /> Name
+                    </label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.name || ""}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
+                      <EmailIcon className="text-gray-500 text-lg" /> Email
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email || ""}
+                      disabled
+                      className="w-full px-4 py-3 bg-gray-100 border border-gray-300 rounded-lg cursor-not-allowed"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
+                      <PhoneIcon className="text-gray-500 text-lg" /> Phone Number
+                    </label>
+                    <input
+                      type="tel"
+                      name="phone_number"
+                      value={formData.phone_number || ""}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
+                      <LocationOnIcon className="text-gray-500 text-lg" /> Address
+                    </label>
+                    <input
+                      type="text"
+                      name="address"
+                      value={formData.address || ""}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-4 mt-8">
+                  <button
+                    type="submit"
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-semibold flex items-center justify-center gap-2"
+                  >
+                    <SaveIcon /> Save Changes
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditing(false)}
+                    className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 py-3 px-4 rounded-lg font-semibold flex items-center justify-center gap-2"
+                  >
+                    <CancelIcon /> Cancel
                   </button>
                 </div>
-              ))}
-            </div>
+              </form>
+            )}
+
+            {/* --- CHANGE PASSWORD FORM --- */}
+            {changingPassword && (
+              <form onSubmit={handleChangePassword} className="space-y-6 mt-10 pt-10 border-t border-gray-200">
+                <h3 className="text-xl font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                  <LockIcon className="text-green-600" /> Change Password
+                </h3>
+                
+                <div className="relative">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Current Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showPasswords.old_password ? "text" : "password"}
+                      name="old_password"
+                      value={passwordData.old_password}
+                      onChange={handlePasswordChange}
+                      required
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 pr-12"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => togglePasswordVisibility("old_password")}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+                    >
+                      {showPasswords.old_password ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="relative">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    New Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showPasswords.new_password ? "text" : "password"}
+                      name="new_password"
+                      value={passwordData.new_password}
+                      onChange={handlePasswordChange}
+                      required
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 pr-12"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => togglePasswordVisibility("new_password")}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+                    >
+                      {showPasswords.new_password ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="relative">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Confirm New Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showPasswords.confirm_password ? "text" : "password"}
+                      name="confirm_password"
+                      value={passwordData.confirm_password}
+                      onChange={handlePasswordChange}
+                      required
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 pr-12"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => togglePasswordVisibility("confirm_password")}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+                    >
+                      {showPasswords.confirm_password ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-4 mt-8">
+                  <button
+                    type="submit"
+                    className="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-lg font-semibold flex items-center justify-center gap-2"
+                  >
+                    <LockIcon /> Update Password
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setChangingPassword(false)}
+                    className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 py-3 px-4 rounded-lg font-semibold flex items-center justify-center gap-2"
+                  >
+                    <CancelIcon /> Cancel
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       </div>

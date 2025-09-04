@@ -35,7 +35,7 @@ const EmployerHeader = () => {
     localStorage.removeItem('token');
     sessionStorage.removeItem('user');
     sessionStorage.removeItem('token');
-    navigate('/login');
+    navigate('/');
   };
 
   return (

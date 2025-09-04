@@ -7,11 +7,12 @@ name = "pypi"
 flask = "*"
 flask-sqlalchemy = "*"
 flask-jwt-extended = "*"
-flask-migrate = "*"
 flask-cors = "*"
-werkzeug = "*"
+python-dotenv = "*"
+flask-mail = "*"
 
 [dev-packages]
+pytest = "*"
 
 [requires]
 python_version = "3.12"

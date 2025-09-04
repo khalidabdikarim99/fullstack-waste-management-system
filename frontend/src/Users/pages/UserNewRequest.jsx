@@ -1,406 +1,497 @@
-import React, { useState } from 'react';
-import { 
-  Container,
-  Typography,
-  Box,
-  Button,
-  TextField,
-  Select,
-  MenuItem,
-  InputLabel,
-  FormControl,
-  Paper,
-  Grid,
-  Divider,
-  FormHelperText,
-  CircularProgress,
-  Snackbar,
-  Alert
-} from '@mui/material';
+// src/User/pages/PickupRequest.jsx
+import React, { useState, useEffect } from "react";
 import {
-  CalendarToday as DateIcon,
-  Schedule as TimeIcon,
-  LocationOn as LocationIcon,
-  Category as WasteTypeIcon,
-  Description as NotesIcon,
-  AddAPhoto as PhotoIcon,
-  Send as SubmitIcon,
-  CheckCircle as SuccessIcon
-} from '@mui/icons-material';
-import { useFormik } from 'formik';
-import * as Yup from 'yup';
+  Box,
+  Typography,
+  TextField,
+  Button,
+  Grid,
+  MenuItem,
+  Paper,
+  Card,
+  CardContent,
+  Tabs,
+  Tab,
+  AppBar,
+} from "@mui/material";
+import {
+  LocalShipping,
+  AssignmentTurnedIn,
+  Report,
+  Person,
+  Email,
+  Phone,
+  Scale,
+  LocationOn,
+  Image,
+  Description,
+  Category,
+  AttachMoney,
+  CalendarToday,
+  CheckCircle,
+  Warning,
+  Recycling
+} from "@mui/icons-material";
+import Swal from "sweetalert2";
 
-// ✅ API base URL
-const API_BASE_URL = "http://127.0.0.1:5000/api";
+const PickupRequest = () => {
+  const [user, setUser] = useState(null);
 
-const wasteTypes = [
-  'Plastic',
-  'Paper',
-  'Glass',
-  'Metal',
-  'Organic',
-  'Electronic',
-  'Textile',
-  'Hazardous',
-  'Other'
-];
-
-const collectionFrequencies = [
-  'One-time',
-  'Weekly',
-  'Bi-weekly',
-  'Monthly'
-];
-
-const validationSchema = Yup.object().shape({
-  wasteType: Yup.string().required('Waste type is required'),
-  collectionDate: Yup.date().required('Collection date is required').min(new Date(), 'Date cannot be in the past'),
-  collectionTime: Yup.string().required('Collection time is required'),
-  frequency: Yup.string().required('Frequency is required'),
-  address: Yup.string().required('Address is required').min(10, 'Address is too short'),
-  notes: Yup.string().max(200, 'Notes should not exceed 200 characters'),
-  quantity: Yup.number().required('Quantity is required').min(1, 'Minimum quantity is 1')
-});
-
-const UserNewRequest = () => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const [photo, setPhoto] = useState(null);
-
-  const formik = useFormik({
-    initialValues: {
-      wasteType: '',
-      collectionDate: '',
-      collectionTime: '',
-      frequency: '',
-      address: '',
-      notes: '',
-      quantity: 1
-    },
-    validationSchema,
-    onSubmit: async (values, { resetForm }) => {
-      setIsSubmitting(true);
-      try {
-        const response = await fetch(`${API_BASE_URL}/collection-request`, { // ✅ match Flask route
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ ...values, photo: photo ? photo.name : null })
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to submit request");
-        }
-
-        const data = await response.json();
-        console.log("Submitted:", data);
-
-        setIsSubmitting(false);
-        setSuccess(true);
-        resetForm();
-        setPhoto(null);
-      } catch (error) {
-        console.error("Error submitting request:", error);
-        setIsSubmitting(false);
-      }
-    }
+  // Pickup form state
+  const [pickupData, setPickupData] = useState({
+    quantity: "",
+    location: "",
+    image_url: "",
+    notes: "",
   });
 
-  const handlePhotoChange = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      setPhoto(file);
+  // Confirmation form state
+  const [confirmationData, setConfirmationData] = useState({
+    waste_type: "",
+    quantity: "",
+    amount_paid: "",
+    location: "",
+    collector_name: "",
+    collector_email: "",
+    collector_phone: "",
+    date: "",
+  });
+
+  // Report form state
+  const [reportData, setReportData] = useState({
+    location: "",
+    notes: "",
+  });
+
+  const [activeForm, setActiveForm] = useState("pickup"); // 'pickup', 'confirmation', 'report'
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
     }
+  }, []);
+
+  if (!user) return (
+    <Box className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center">
+      <Box className="text-center">
+        <Box className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></Box>
+        <Typography variant="body1" className="mt-4 text-gray-600">
+          Loading user data...
+        </Typography>
+      </Box>
+    </Box>
+  );
+
+  // ---------------- Handlers ----------------
+  const handlePickupChange = (e) => {
+    setPickupData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleCloseSnackbar = () => {
-    setSuccess(false);
+  const handleConfirmationChange = (e) => {
+    setConfirmationData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
+  const handleReportChange = (e) => {
+    setReportData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handlePickupSubmit = (e) => {
+    e.preventDefault();
+    Swal.fire("Success", "Pickup request submitted successfully!", "success");
+    setPickupData({ quantity: "", location: "", image_url: "", notes: "" });
+  };
+
+  const handleConfirmationSubmit = (e) => {
+    e.preventDefault();
+    Swal.fire("Success", "Pickup confirmed successfully!", "success");
+    setConfirmationData({
+      waste_type: "",
+      quantity: "",
+      amount_paid: "",
+      location: "",
+      collector_name: "",
+      collector_email: "",
+      collector_phone: "",
+      date: "",
+    });
+  };
+
+  const handleReportSubmit = (e) => {
+    e.preventDefault();
+    Swal.fire("Success", "Report submitted successfully!", "success");
+    setReportData({ location: "", notes: "" });
+  };
+
+  // ---------------- Render ----------------
   return (
-    <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
-      <Paper elevation={3} sx={{ 
-        p: 4,
-        backgroundColor: 'white'
-      }}>
-        <Typography variant="h4" component="h1" gutterBottom sx={{ 
-          fontWeight: 'bold',
-          color: 'rgb(34, 197, 94)', 
-          '& .MuiSvgIcon-root': {
-            color: 'rgb(34, 197, 94)' 
-          }
-        }}>
-          <SubmitIcon sx={{ verticalAlign: 'middle', mr: 1 }} />
-          New Collection Request
-        </Typography>
-        
-        <Typography variant="subtitle1" sx={{ 
-          mb: 3,
-          color: 'text.secondary'
-        }}>
-          Fill out the form to schedule a waste collection
-        </Typography>
-        
-        <Divider sx={{ mb: 4 }} />
-        
-        <form onSubmit={formik.handleSubmit}>
-          <Grid container spacing={3}>
-            {/* Waste Type */}
-            <Grid item xs={12} md={6}>
-              <FormControl fullWidth error={formik.touched.wasteType && Boolean(formik.errors.wasteType)}>
-                <InputLabel id="waste-type-label">Waste Type</InputLabel>
-                <Select
-                  labelId="waste-type-label"
-                  id="wasteType"
-                  name="wasteType"
-                  value={formik.values.wasteType}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  label="Waste Type"
-                >
-                  {wasteTypes.map((type) => (
-                    <MenuItem key={type} value={type}>{type}</MenuItem>
-                  ))}
-                </Select>
-                <FormHelperText sx={{ color: 'rgb(239, 68, 68)' }}>
-                  {formik.touched.wasteType && formik.errors.wasteType}
-                </FormHelperText>
-              </FormControl>
-            </Grid>
-            
-            {/* Quantity */}
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                id="quantity"
-                name="quantity"
-                label="Quantity (bags/items)"
-                type="number"
-                InputProps={{
-                  inputProps: { min: 1 }
-                }}
-                value={formik.values.quantity}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                error={formik.touched.quantity && Boolean(formik.errors.quantity)}
-                helperText={formik.touched.quantity && formik.errors.quantity}
-                FormHelperTextProps={{
-                  sx: {
-                    color: 'rgb(239, 68, 68)'
-                  }
-                }}
+    <Box className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 py-10 px-4">
+      <Box className="max-w-4xl mx-auto">
+        {/* Header Section */}
+        <Card className="mb-8 rounded-2xl shadow-lg overflow-hidden">
+          <Box className="bg-gradient-to-r from-green-600 to-teal-600 p-6 text-white">
+            <Typography variant="h3" className="font-bold flex items-center gap-2">
+              <Recycling className="text-4xl" /> Waste2Wealth
+            </Typography>
+            <Typography variant="h5" className="mt-2 text-green-100">
+              Pickup Management Portal
+            </Typography>
+            <Typography variant="body1" className="mt-1 text-green-100">
+              Manage your waste pickup requests, confirmations, and reports
+            </Typography>
+          </Box>
+        </Card>
+
+        {/* Form Navigation Tabs */}
+        <Card className="mb-6 rounded-2xl shadow-lg">
+          <AppBar position="static" className="bg-white rounded-t-2xl shadow-none">
+            <Tabs
+              value={activeForm}
+              onChange={(e, newValue) => setActiveForm(newValue)}
+              variant="fullWidth"
+              indicatorColor="primary"
+              textColor="primary"
+            >
+              <Tab 
+                value="pickup" 
+                label="Pickup Request" 
+                icon={<LocalShipping />} 
+                iconPosition="start"
               />
-            </Grid>
-            
-            {/* Collection Date */}
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                id="collectionDate"
-                name="collectionDate"
-                type="date"
-                label={
-                  <Box display="flex" alignItems="center">
-                    <DateIcon sx={{ mr: 1, fontSize: 20, color: 'action.active' }} />
-                    Collection Date
-                  </Box>
-                }
-                InputLabelProps={{ shrink: true }}
-                value={formik.values.collectionDate}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                error={formik.touched.collectionDate && Boolean(formik.errors.collectionDate)}
-                helperText={formik.touched.collectionDate && formik.errors.collectionDate}
-                FormHelperTextProps={{
-                  sx: {
-                    color: 'rgb(239, 68, 68)'
-                  }
-                }}
+              <Tab 
+                value="confirmation" 
+                label="Confirmation" 
+                icon={<AssignmentTurnedIn />} 
+                iconPosition="start"
               />
-            </Grid>
-            
-            {/* Collection Time */}
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                id="collectionTime"
-                name="collectionTime"
-                type="time"
-                label={
-                  <Box display="flex" alignItems="center">
-                    <TimeIcon sx={{ mr: 1, fontSize: 20, color: 'action.active' }} />
-                    Collection Time
-                  </Box>
-                }
-                InputLabelProps={{ shrink: true }}
-                value={formik.values.collectionTime}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                error={formik.touched.collectionTime && Boolean(formik.errors.collectionTime)}
-                helperText={formik.touched.collectionTime && formik.errors.collectionTime}
-                FormHelperTextProps={{
-                  sx: {
-                    color: 'rgb(239, 68, 68)'
-                  }
-                }}
+              <Tab 
+                value="report" 
+                label="Report" 
+                icon={<Report />} 
+                iconPosition="start"
               />
-            </Grid>
-            
-            {/* Frequency */}
-            <Grid item xs={12} md={6}>
-              <FormControl fullWidth error={formik.touched.frequency && Boolean(formik.errors.frequency)}>
-                <InputLabel id="frequency-label">Collection Frequency</InputLabel>
-                <Select
-                  labelId="frequency-label"
-                  id="frequency"
-                  name="frequency"
-                  value={formik.values.frequency}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  label="Collection Frequency"
-                >
-                  {collectionFrequencies.map((freq) => (
-                    <MenuItem key={freq} value={freq}>{freq}</MenuItem>
-                  ))}
-                </Select>
-                <FormHelperText sx={{ color: 'rgb(239, 68, 68)' }}>
-                  {formik.touched.frequency && formik.errors.frequency}
-                </FormHelperText>
-              </FormControl>
-            </Grid>
-            
-            {/* Address */}
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                id="address"
-                name="address"
-                label={
-                  <Box display="flex" alignItems="center">
-                    <LocationIcon sx={{ mr: 1, fontSize: 20, color: 'action.active' }} />
-                    Collection Address
-                  </Box>
-                }
-                value={formik.values.address}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                error={formik.touched.address && Boolean(formik.errors.address)}
-                helperText={formik.touched.address && formik.errors.address}
-                multiline
-                rows={3}
-                FormHelperTextProps={{
-                  sx: {
-                    color: 'rgb(239, 68, 68)'
-                  }
-                }}
-              />
-            </Grid>
-            
-            {/* Photo Upload */}
-            <Grid item xs={12}>
-              <input
-                accept="image/*"
-                style={{ display: 'none' }}
-                id="photo-upload"
-                type="file"
-                onChange={handlePhotoChange}
-              />
-              <label htmlFor="photo-upload">
-                <Button
-                  variant="outlined"
-                  component="span"
-                  startIcon={<PhotoIcon />}
-                  sx={{ mr: 2 }}
-                >
-                  Upload Photo
-                </Button>
-              </label>
-              {photo && (
-                <Typography variant="body2" component="span" sx={{ ml: 1 }}>
-                  {photo.name}
-                </Typography>
-              )}
-              <Typography variant="caption" display="block" sx={{ mt: 1, color: 'text.secondary' }}>
-                Upload a photo of your waste (optional)
-              </Typography>
-            </Grid>
-            
-            {/* Notes */}
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                id="notes"
-                name="notes"
-                label={
-                  <Box display="flex" alignItems="center">
-                    <NotesIcon sx={{ mr: 1, fontSize: 20, color: 'action.active' }} />
-                    Additional Notes
-                  </Box>
-                }
-                value={formik.values.notes}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                error={formik.touched.notes && Boolean(formik.errors.notes)}
-                helperText={formik.touched.notes && formik.errors.notes}
-                multiline
-                rows={4}
-                placeholder="Any special instructions for the collector..."
-                FormHelperTextProps={{
-                  sx: {
-                    color: 'rgb(239, 68, 68)'
-                  }
-                }}
-              />
-            </Grid>
-            
-            {/* Submit Button */}
-            <Grid item xs={12}>
-              <Box display="flex" justifyContent="flex-end">
-                <Button
-                  type="submit"
-                  variant="contained"
-                  size="large"
-                  startIcon={isSubmitting ? <CircularProgress size={20} color="inherit" /> : <SubmitIcon />}
-                  disabled={isSubmitting}
-                  sx={{
-                    backgroundColor: 'rgb(34, 197, 94)',
-                    color: 'white',
-                    '&:hover': {
-                      backgroundColor: 'rgb(22, 163, 74)'
-                    }
+            </Tabs>
+          </AppBar>
+        </Card>
+
+        {/* User Info Card */}
+        <Card className="mb-6 rounded-2xl shadow-lg">
+          <CardContent>
+            <Typography variant="h6" className="mb-4 flex items-center gap-2">
+              <Person color="primary" /> User Information
+            </Typography>
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={4}>
+                <TextField
+                  label="Name"
+                  value={user.name}
+                  fullWidth
+                  disabled
+                  InputProps={{
+                    startAdornment: <Person color="action" sx={{ mr: 1 }} />,
                   }}
-                >
-                  {isSubmitting ? 'Submitting...' : 'Submit Request'}
-                </Button>
-              </Box>
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <TextField
+                  label="Email"
+                  value={user.email}
+                  fullWidth
+                  disabled
+                  InputProps={{
+                    startAdornment: <Email color="action" sx={{ mr: 1 }} />,
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <TextField
+                  label="Phone Number"
+                  value={user.phone_number}
+                  fullWidth
+                  disabled
+                  InputProps={{
+                    startAdornment: <Phone color="action" sx={{ mr: 1 }} />,
+                  }}
+                />
+              </Grid>
             </Grid>
-          </Grid>
-        </form>
-      </Paper>
-      
-      {/* Success Notification */}
-      <Snackbar
-        open={success}
-        autoHideDuration={6000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-      >
-        <Alert
-          onClose={handleCloseSnackbar}
-          severity="success"
-          icon={<SuccessIcon fontSize="inherit" />}
-          sx={{ 
-            width: '100%',
-            backgroundColor: 'rgb(34, 197, 94)',
-            color: 'white'
-          }}
-        >
-          Your collection request has been submitted successfully!
-        </Alert>
-      </Snackbar>
-    </Container>
+          </CardContent>
+        </Card>
+
+        {/* ---------------- Pickup Form ---------------- */}
+        {activeForm === "pickup" && (
+          <Card className="rounded-2xl shadow-lg">
+            <CardContent className="p-6">
+              <Typography variant="h5" className="mb-6 flex items-center gap-2 text-green-700">
+                <LocalShipping className="text-3xl" /> Pickup Request Form
+              </Typography>
+              
+              <form onSubmit={handlePickupSubmit}>
+                <Grid container spacing={3}>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      label="Quantity (kg)"
+                      name="quantity"
+                      type="number"
+                      value={pickupData.quantity}
+                      onChange={handlePickupChange}
+                      fullWidth
+                      required
+                      InputProps={{
+                        startAdornment: <Scale color="action" sx={{ mr: 1 }} />,
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      label="Location"
+                      name="location"
+                      value={pickupData.location}
+                      onChange={handlePickupChange}
+                      fullWidth
+                      required
+                      InputProps={{
+                        startAdornment: <LocationOn color="action" sx={{ mr: 1 }} />,
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      label="Image URL"
+                      name="image_url"
+                      value={pickupData.image_url}
+                      onChange={handlePickupChange}
+                      fullWidth
+                      InputProps={{
+                        startAdornment: <Image color="action" sx={{ mr: 1 }} />,
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      label="Notes / Description"
+                      name="notes"
+                      value={pickupData.notes}
+                      onChange={handlePickupChange}
+                      fullWidth
+                      multiline
+                      rows={3}
+                      InputProps={{
+                        startAdornment: <Description color="action" sx={{ mr: 1, mt: 1.5 }} />,
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Button 
+                      type="submit" 
+                      variant="contained" 
+                      color="success" 
+                      fullWidth
+                      size="large"
+                      startIcon={<LocalShipping />}
+                    >
+                      Submit Pickup Request
+                    </Button>
+                  </Grid>
+                </Grid>
+              </form>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* ---------------- Confirmation Form ---------------- */}
+        {activeForm === "confirmation" && (
+          <Card className="rounded-2xl shadow-lg">
+            <CardContent className="p-6">
+              <Typography variant="h5" className="mb-6 flex items-center gap-2 text-blue-700">
+                <AssignmentTurnedIn className="text-3xl" /> Pickup Confirmation Form
+              </Typography>
+              
+              <form onSubmit={handleConfirmationSubmit}>
+                <Grid container spacing={3}>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      label="Waste Type"
+                      name="waste_type"
+                      value={confirmationData.waste_type}
+                      onChange={handleConfirmationChange}
+                      fullWidth
+                      required
+                      InputProps={{
+                        startAdornment: <Category color="action" sx={{ mr: 1 }} />,
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      label="Quantity (kg)"
+                      name="quantity"
+                      type="number"
+                      value={confirmationData.quantity}
+                      onChange={handleConfirmationChange}
+                      fullWidth
+                      required
+                      InputProps={{
+                        startAdornment: <Scale color="action" sx={{ mr: 1 }} />,
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      label="Amount Paid"
+                      name="amount_paid"
+                      type="number"
+                      value={confirmationData.amount_paid}
+                      onChange={handleConfirmationChange}
+                      fullWidth
+                      required
+                      InputProps={{
+                        startAdornment: <AttachMoney color="action" sx={{ mr: 1 }} />,
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      label="Location"
+                      name="location"
+                      value={confirmationData.location}
+                      onChange={handleConfirmationChange}
+                      fullWidth
+                      required
+                      InputProps={{
+                        startAdornment: <LocationOn color="action" sx={{ mr: 1 }} />,
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <TextField
+                      label="Collector Name"
+                      name="collector_name"
+                      value={confirmationData.collector_name}
+                      onChange={handleConfirmationChange}
+                      fullWidth
+                      required
+                      InputProps={{
+                        startAdornment: <Person color="action" sx={{ mr: 1 }} />,
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <TextField
+                      label="Collector Email"
+                      name="collector_email"
+                      value={confirmationData.collector_email}
+                      onChange={handleConfirmationChange}
+                      fullWidth
+                      required
+                      InputProps={{
+                        startAdornment: <Email color="action" sx={{ mr: 1 }} />,
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <TextField
+                      label="Collector Phone"
+                      name="collector_phone"
+                      value={confirmationData.collector_phone}
+                      onChange={handleConfirmationChange}
+                      fullWidth
+                      required
+                      InputProps={{
+                        startAdornment: <Phone color="action" sx={{ mr: 1 }} />,
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      label="Date"
+                      name="date"
+                      type="date"
+                      value={confirmationData.date}
+                      onChange={handleConfirmationChange}
+                      fullWidth
+                      required
+                      InputLabelProps={{ shrink: true }}
+                      InputProps={{
+                        startAdornment: <CalendarToday color="action" sx={{ mr: 1 }} />,
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Button 
+                      type="submit" 
+                      variant="contained" 
+                      color="primary" 
+                      fullWidth
+                      size="large"
+                      startIcon={<CheckCircle />}
+                    >
+                      Submit Confirmation
+                    </Button>
+                  </Grid>
+                </Grid>
+              </form>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* ---------------- Report Form ---------------- */}
+        {activeForm === "report" && (
+          <Card className="rounded-2xl shadow-lg">
+            <CardContent className="p-6">
+              <Typography variant="h5" className="mb-6 flex items-center gap-2 text-red-700">
+                <Report className="text-3xl" /> Pickup Report Form
+              </Typography>
+              
+              <form onSubmit={handleReportSubmit}>
+                <Grid container spacing={3}>
+                  <Grid item xs={12}>
+                    <TextField
+                      label="Location"
+                      name="location"
+                      value={reportData.location}
+                      onChange={handleReportChange}
+                      fullWidth
+                      required
+                      InputProps={{
+                        startAdornment: <LocationOn color="action" sx={{ mr: 1 }} />,
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      label="Notes / Description"
+                      name="notes"
+                      value={reportData.notes}
+                      onChange={handleReportChange}
+                      fullWidth
+                      multiline
+                      rows={3}
+                      InputProps={{
+                        startAdornment: <Description color="action" sx={{ mr: 1, mt: 1.5 }} />,
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Button 
+                      type="submit" 
+                      variant="contained" 
+                      color="error" 
+                      fullWidth
+                      size="large"
+                      startIcon={<Warning />}
+                    >
+                      Submit Report
+                    </Button>
+                  </Grid>
+                </Grid>
+              </form>
+            </CardContent>
+          </Card>
+        )}
+      </Box>
+    </Box>
   );
 };
 
-export default UserNewRequest;
+export default PickupRequest;

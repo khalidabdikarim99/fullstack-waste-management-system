@@ -17,8 +17,10 @@ const CollectorHeader = () => {
     if (storedUser) {
       try {
         const user = JSON.parse(storedUser);
-        if (user?.first_name && user?.last_name) {
-          setUserName(user.first_name + ' ' + user.last_name);
+        if (user?.name) {
+          setUserName(user.name); // ✅ backend sends "name"
+        } else if (user?.first_name && user?.last_name) {
+          setUserName(user.first_name + ' ' + user.last_name); // fallback if exists
         }
       } catch (err) {
         console.error("Error parsing stored user:", err);
@@ -60,7 +62,10 @@ const CollectorHeader = () => {
             <span className="text-sm font-medium">{userName || 'Collector'}</span>
           </div>
 
-          <button onClick={handleLogout} className="text-gray-500 hover:text-red-500 flex items-center space-x-1">
+          <button 
+            onClick={handleLogout} 
+            className="text-gray-500 hover:text-red-500 flex items-center space-x-1"
+          >
             <LogoutIcon fontSize="small" />
             <span className="text-sm">Logout</span>
           </button>

@@ -15,7 +15,7 @@ const RecyclerHeader = () => {
     const storedUser = localStorage.getItem('user') || sessionStorage.getItem('user');
     if (storedUser) {
       const user = JSON.parse(storedUser);
-      setUserName(user.firstname);
+      setUserName(user.name); // <-- Fixed: use 'name' instead of 'firstname'
     }
   }, []);
 

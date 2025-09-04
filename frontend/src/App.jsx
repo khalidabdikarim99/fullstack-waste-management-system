@@ -12,7 +12,7 @@ import About from './pages/About';
 import Contact from './pages/Contact';
 import Jobs from './pages/Jobs';
 import Marketplace from './pages/Marketplace';
-import Login from './pages/Login';
+
 import Signup from './pages/Signup';
 
 // Services
@@ -42,6 +42,7 @@ import ContentManagement from './Admin/pages/ContentManagement';
 import RewardSystem from './Admin/pages/RewardSystem';
 import Feedback from './Admin/pages/Feedback';
 import AdminManagement from './Admin/pages/AdminManagement';
+import AdminLogin from './Admin/Layout/AdminLogin';
 
 // User
 import UserLayout from './Users/layout/UserLayout';
@@ -56,6 +57,7 @@ import Learning from './Users/pages/Learning';
 import Support from './Users/pages/Support';
 import UserHistoryRequest from './Users/pages/UserHistoryRequest';
 import UserNewRequest from './Users/pages/UserNewRequest';
+import UserLogin from './Users/layout/UserLogin';
 
 // Collector
 import CollectorLayout from './Collector/layout/CollectorLayout';
@@ -66,6 +68,7 @@ import CollectorHistory from './Collector/pages/History';
 import CollectorCommunication from './Collector/pages/Communication';
 import CollectorEarnings from './Collector/pages/Earnings';
 import CollectorProfile from './Collector/pages/Profile';
+import CollectorLogin from './Collector/layout/CollectorLogin';
 
 // Recycler
 import RecyclerLayout from './Recycler/layout/RecyclerLayout';
@@ -77,18 +80,19 @@ import RecyclerSales from './Recycler/pages/Sales';
 import RecyclerReports from './Recycler/pages/Reports';
 import RecyclerCommunication from './Recycler/pages/Communication';
 import RecyclerProfile from './Recycler/pages/Profile';
+import RecyclerLogin from './Recycler/layout/RecyclerLogin';
 
 // Employer
 import EmployerLayout from './Employer/layout/EmployerLayout';
 import EmployerDashboard from './Employer/pages/Dashboard';
 import EmployerMarketplace from './Employer/pages/Marketplace';
-import EmployerBuyMaterials from './Employer/pages/ BuyMaterials';
+import EmployerBuyMaterials from "./Employer/pages/ BuyMaterials"
 import EmployerSellProducts from './Employer/pages/SellProducts';
-import EmployerOrders from './Employer/pages/ Orders';
+import EmployerOrders from "./Employer/pages/ Orders"
 import EmployerReports from './Employer/pages/Reports';
 import EmployerMessages from './Employer/pages/Messages';
 import EmployerProfile from './Employer/pages/Profile';
-
+import EmployerLogin from './Employer/layout/EmployerLogin';
 
 // Public layout wrapper
 const PublicRouteWrapper = ({ children }) => (
@@ -114,8 +118,15 @@ const App = () => {
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/jobs" element={<Jobs />} />
                 <Route path="/marketplace" element={<Marketplace />} />
-                <Route path="/login" element={<Login />} />
+              
                 <Route path="/signup" element={<Signup />} />
+
+                {/* Role-specific login pages */}
+                <Route path="/adminlogin" element={<AdminLogin />} />
+                <Route path="/userlogin" element={<UserLogin />} />
+                <Route path="/collectorlogin" element={<CollectorLogin />} />
+                <Route path="/recyclerlogin" element={<RecyclerLogin />} />
+                <Route path="/employerlogin" element={<EmployerLogin />} />
 
                 {/* Services */}
                 <Route path="/services/jobcreation" element={<JobCreation />} />
@@ -193,16 +204,20 @@ const App = () => {
         </Route>
 
         {/* Employer Routes */}
-        <Route path="/employer/*" element={<EmployerLayout />}>
-          <Route index element={<EmployerDashboard />} />
-          <Route path="dashboard" element={<EmployerDashboard />} />
-          <Route path="marketplace" element={<EmployerMarketplace />} />
-          <Route path="buy" element={<EmployerBuyMaterials />} />
-          <Route path="sell" element={<EmployerSellProducts />} />
-          <Route path="orders" element={<EmployerOrders />} />
-          <Route path="reports" element={<EmployerReports />} />
-          <Route path="messages" element={<EmployerMessages />} />
-          <Route path="profile" element={<EmployerProfile />} />
+        {/* Employer Routes */}
+<Route path="/employer/*" element={<EmployerLayout />}>
+  <Route index element={<EmployerDashboard />} />
+  <Route path="dashboard" element={<EmployerDashboard />} />
+  <Route path="marketplace" element={<EmployerMarketplace />} />
+  <Route path="buy" element={<EmployerBuyMaterials />} />
+  <Route path="sell" element={<EmployerSellProducts />} />
+  <Route path="orders" element={<EmployerOrders />} />
+  <Route path="reports" element={<EmployerReports />} />
+  <Route path="messages" element={<EmployerMessages />} />
+  <Route path="profile" element={<EmployerProfile />} />  {/* <-- fixed */}
+
+
+          
         </Route>
       </Routes>
     </Router>

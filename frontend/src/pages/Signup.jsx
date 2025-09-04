@@ -13,9 +13,6 @@ const Signup = () => {
     const loggedInUser = JSON.parse(localStorage.getItem('user'));
     if (loggedInUser) {
       switch (loggedInUser.role) {
-        case 'admin':
-          navigate('/admin/dashboard');
-          break;
         case 'recycler':
           navigate('/recycler/dashboard');
           break;
@@ -39,8 +36,9 @@ const Signup = () => {
     confirmPassword: '',
     phoneNumber: '',
     address: '',
-    userType: 'user',
+    userType: 'user', // default role
   });
+
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
@@ -61,7 +59,11 @@ const Signup = () => {
     }
 
     if (!validatePassword(formData.password)) {
-      Swal.fire('Error', "Password must be at least 8 characters long and include uppercase, lowercase, and a number.", 'error');
+      Swal.fire(
+        'Error',
+        "Password must be at least 8 characters long and include uppercase, lowercase, and a number.",
+        'error'
+      );
       return;
     }
 
@@ -85,7 +87,9 @@ const Signup = () => {
 
       const data = await res.json();
 
-      if (!res.ok) throw new Error(data.error || "Signup failed");
+      if (!res.ok) {
+        throw new Error(data.error || "Signup failed");
+      }
 
       Swal.fire({
         icon: 'success',
@@ -94,8 +98,20 @@ const Signup = () => {
         timer: 2000,
         showConfirmButton: false,
       }).then(() => {
-        // Redirect to login page after successful signup
-        navigate('/login');
+        // Navigate to login page based on selected role
+        switch (formData.userType) {
+          case 'recycler':
+            navigate('/recyclerlogin');
+            break;
+          case 'collector':
+            navigate('/collectorlogin');
+            break;
+          case 'employer':
+            navigate('/employerlogin');
+            break;
+          default:
+            navigate('/userlogin');
+        }
       });
 
     } catch (error) {
@@ -149,7 +165,7 @@ const Signup = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Role *</label>
                 <div className="flex flex-wrap gap-4">
-                  {['admin','recycler','collector','employer','user'].map(role => (
+                  {['recycler','collector','employer','user'].map(role => (
                     <label key={role} className="inline-flex items-center">
                       <input
                         type="radio"

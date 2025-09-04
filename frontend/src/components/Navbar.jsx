@@ -1,11 +1,12 @@
 // src/components/Navbar.jsx
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu as MenuIcon, ExpandMore } from '@mui/icons-material';
+import { Menu as MenuIcon, ExpandMore, Person } from '@mui/icons-material';
 
 const Navbar = () => {
   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState('');
+  const [loginDropdownOpen, setLoginDropdownOpen] = useState(false);
 
   const toggleDropdown = (menu) => {
     setOpenDropdown(openDropdown === menu ? '' : menu);
@@ -13,6 +14,10 @@ const Navbar = () => {
 
   const closeDropdown = () => {
     setOpenDropdown('');
+  };
+
+  const toggleLoginDropdown = () => {
+    setLoginDropdownOpen(!loginDropdownOpen);
   };
 
   return (
@@ -75,11 +80,56 @@ const Navbar = () => {
           <Link to="/marketplace" className="hover:text-green-400">Marketplace</Link>
           <Link to="/contact" className="hover:text-green-400">Contact</Link>
 
-          {/* Login and Signup as green buttons */}
-          <Link to="/login" className="bg-green-500 text-white px-4 py-1 rounded hover:bg-green-400 transition">
-            Login
-          </Link>
-         
+          {/* Login Dropdown */}
+          <div className="relative group">
+            <button 
+              onClick={toggleLoginDropdown} 
+              className="flex items-center bg-green-500 text-white px-4 py-1 rounded hover:bg-green-400 transition"
+            >
+              <Person className="mr-1" fontSize="small" />
+              Login
+              <ExpandMore fontSize="small" />
+            </button>
+            {loginDropdownOpen && (
+              <div className="absolute right-0 mt-2 bg-gray-800 rounded shadow-md z-10 w-48">
+                <Link 
+                  to="/userlogin" 
+                  className="block px-4 py-2 hover:bg-gray-700 border-b border-gray-700"
+                  onClick={() => setLoginDropdownOpen(false)}
+                >
+                  👤 User Login
+                </Link>
+                <Link 
+                  to="/collectorlogin" 
+                  className="block px-4 py-2 hover:bg-gray-700 border-b border-gray-700"
+                  onClick={() => setLoginDropdownOpen(false)}
+                >
+                  🚚 Collector Login
+                </Link>
+                <Link 
+                  to="/recyclerlogin" 
+                  className="block px-4 py-2 hover:bg-gray-700 border-b border-gray-700"
+                  onClick={() => setLoginDropdownOpen(false)}
+                >
+                  ♻️ Recycler Login
+                </Link>
+                <Link 
+                  to="/employerlogin" 
+                  className="block px-4 py-2 hover:bg-gray-700 border-b border-gray-700"
+                  onClick={() => setLoginDropdownOpen(false)}
+                >
+                  🏢 Employer Login
+                </Link>
+                <Link 
+                  to="/adminlogin" 
+                  className="block px-4 py-2 hover:bg-gray-700"
+                  onClick={() => setLoginDropdownOpen(false)}
+                >
+                  ⚙️ Admin Login
+                </Link>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Mobile Menu Icon */}
@@ -98,8 +148,30 @@ const Navbar = () => {
           <Link to="/jobs" className="block py-2 hover:text-green-400" onClick={() => setMobileMenuOpen(false)}>Jobs</Link>
           <Link to="/marketplace" className="block py-2 hover:text-green-400" onClick={() => setMobileMenuOpen(false)}>Marketplace</Link>
           <Link to="/contact" className="block py-2 hover:text-green-400" onClick={() => setMobileMenuOpen(false)}>Contact</Link>
-          <Link to="/login" className="block py-2 text-green-400" onClick={() => setMobileMenuOpen(false)}>Login</Link>
-          <Link to="/signup" className="block py-2 text-green-500" onClick={() => setMobileMenuOpen(false)}>Signup</Link>
+          
+          {/* Mobile Login Options */}
+          <div className="pt-2 border-t border-gray-700 mt-2">
+            <p className="text-green-400 py-2 font-semibold">Login Options:</p>
+            <Link to="/userlogin" className="block py-2 pl-4 text-gray-300 hover:text-green-400" onClick={() => setMobileMenuOpen(false)}>
+              👤 User Login
+            </Link>
+            <Link to="/collectorlogin" className="block py-2 pl-4 text-gray-300 hover:text-green-400" onClick={() => setMobileMenuOpen(false)}>
+              🚚 Collector Login
+            </Link>
+            <Link to="/recyclerlogin" className="block py-2 pl-4 text-gray-300 hover:text-green-400" onClick={() => setMobileMenuOpen(false)}>
+              ♻️ Recycler Login
+            </Link>
+            <Link to="/employerlogin" className="block py-2 pl-4 text-gray-300 hover:text-green-400" onClick={() => setMobileMenuOpen(false)}>
+              🏢 Employer Login
+            </Link>
+            <Link to="/admin/login" className="block py-2 pl-4 text-gray-300 hover:text-green-400" onClick={() => setMobileMenuOpen(false)}>
+              ⚙️ Admin Login
+            </Link>
+          </div>
+
+          <Link to="/signup" className="block py-2 text-green-500 font-semibold mt-2" onClick={() => setMobileMenuOpen(false)}>
+            Sign Up
+          </Link>
         </div>
       )}
     </nav>

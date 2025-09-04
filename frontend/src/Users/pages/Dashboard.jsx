@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   LocalShipping as PickupIcon,
   Place as LocationIcon,
@@ -7,9 +7,20 @@ import {
 } from '@mui/icons-material';
 
 const Dashboard = () => {
+  const [userName, setUserName] = useState("");
+
+  useEffect(() => {
+    const storedUser = JSON.parse(localStorage.getItem("user"));
+    if (storedUser && storedUser.name) {
+      setUserName(storedUser.name);
+    }
+  }, []);
+
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">Welcome Back, User!</h1>
+      <h1 className="text-2xl font-bold text-gray-800 mb-6">
+        Welcome Back{userName ? `, ${userName}!` : "!"}
+      </h1>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <div className="bg-white p-6 rounded-lg shadow border-l-4 border-green-500">
