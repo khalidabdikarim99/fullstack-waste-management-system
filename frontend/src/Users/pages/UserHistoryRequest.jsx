@@ -34,6 +34,8 @@ import {
 } from "@mui/icons-material";
 import Swal from "sweetalert2";
 
+const API_URL = "http://127.0.0.1:5000"; // Flask backend
+
 const UserHistoryRequest = () => {
   const [activeTab, setActiveTab] = useState("pickup");
   const [pickupRequests, setPickupRequests] = useState([]);
@@ -45,20 +47,25 @@ const UserHistoryRequest = () => {
   const token = localStorage.getItem("token");
   const headers = { Authorization: `Bearer ${token}` };
 
+  // Fetch all user history data
   const fetchHistory = async () => {
     try {
       const [pickupRes, confirmRes, reportRes] = await Promise.all([
-        axios.get("http://localhost:5000/pickup-request/me", { headers }),
-        axios.get("http://localhost:5000/pickup-confirmation/me", { headers }),
-        axios.get("http://localhost:5000/pickup-report/me", { headers }),
+        axios.get(`${API_URL}/pickup-request/me`, { headers }),
+        axios.get(`${API_URL}/pickup-confirmation/me`, { headers }),
+        axios.get(`${API_URL}/pickup-report/me`, { headers }),
       ]);
 
-      console.log("Pickup Requests:", pickupRes.data);
       setPickupRequests(pickupRes.data);
       setConfirmations(confirmRes.data);
       setReports(reportRes.data);
     } catch (err) {
       console.error("Error fetching history:", err);
+      if (err.response && err.response.status === 401) {
+        Swal.fire("Unauthorized", "Please log in to view your history.", "error");
+      } else {
+        Swal.fire("Error", "Failed to fetch history.", "error");
+      }
     }
   };
 
@@ -66,11 +73,13 @@ const UserHistoryRequest = () => {
     if (token) fetchHistory();
   }, [token]);
 
+  // Handle opening edit dialog
   const handleEditClick = (request) => {
     setSelectedRequest({ ...request });
     setEditDialogOpen(true);
   };
 
+  // Handle deleting a pickup request
   const handleDeleteClick = async (id) => {
     const result = await Swal.fire({
       title: "Are you sure?",
@@ -82,7 +91,7 @@ const UserHistoryRequest = () => {
 
     if (result.isConfirmed) {
       try {
-        await axios.delete(`http://localhost:5000/pickup-request/${id}`, { headers });
+        await axios.delete(`${API_URL}/pickup-request/${id}`, { headers });
         Swal.fire("Deleted!", "Your pickup request has been deleted.", "success");
         fetchHistory();
       } catch (err) {
@@ -92,14 +101,16 @@ const UserHistoryRequest = () => {
     }
   };
 
+  // Handle changes in edit form
   const handleEditChange = (e) => {
     setSelectedRequest((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
+  // Handle saving edited pickup request
   const handleEditSave = async () => {
     try {
       await axios.put(
-        `http://localhost:5000/pickup-request/${selectedRequest.id}`,
+        `${API_URL}/pickup-request/${selectedRequest.id}`,
         selectedRequest,
         { headers }
       );
@@ -131,18 +142,8 @@ const UserHistoryRequest = () => {
               indicatorColor="primary"
               textColor="primary"
             >
-              <Tab
-                value="pickup"
-                label="Pickup Requests"
-                icon={<LocalShipping />}
-                iconPosition="start"
-              />
-              <Tab
-                value="confirmation"
-                label="Confirmations"
-                icon={<AssignmentTurnedIn />}
-                iconPosition="start"
-              />
+              <Tab value="pickup" label="Pickup Requests" icon={<LocalShipping />} iconPosition="start" />
+              <Tab value="confirmation" label="Confirmations" icon={<AssignmentTurnedIn />} iconPosition="start" />
               <Tab value="report" label="Reports" icon={<Report />} iconPosition="start" />
             </Tabs>
           </AppBar>
@@ -177,12 +178,7 @@ const UserHistoryRequest = () => {
                             <img
                               src={row.image_url}
                               alt="pickup"
-                              style={{
-                                width: 80,
-                                height: 80,
-                                objectFit: "cover",
-                                borderRadius: 4,
-                              }}
+                              style={{ width: 80, height: 80, objectFit: "cover", borderRadius: 4 }}
                             />
                           ) : (
                             "No Image"

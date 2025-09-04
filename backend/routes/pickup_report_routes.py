@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from models.pickup_report_model import db, PickupReport  # ✅ updated import
+from models.pickup_report_model import db, PickupReport
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from flask_cors import cross_origin
 

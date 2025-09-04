@@ -1,7 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 
-db = SQLAlchemy()
+db = SQLAlchemy()  # ✅ single instance
 
 class User(db.Model):
     __tablename__ = "users"  # match ForeignKey in other models

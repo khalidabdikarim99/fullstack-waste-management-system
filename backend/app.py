@@ -47,6 +47,10 @@ def create_app():
     # ✅ Initialize the database
     db.init_app(app)
 
+    # ✅ Create all tables automatically
+    with app.app_context():
+        db.create_all()
+
     # ✅ Initialize JWT
     jwt = JWTManager(app)
 
@@ -74,11 +78,6 @@ def create_app():
     @jwt.user_lookup_error_loader
     def handle_user_lookup_error(jwt_header, jwt_payload):
         return jsonify({"error": "User not found for this token"}), 404
-
-    # ---------------- Create DB Tables ----------------
-    with app.app_context():
-        # This ensures all existing models are created in the instance database
-        db.create_all()  # users, pickup_requests, pickup_confirmations, pickup_reports
 
     # ✅ Register Blueprints
     app.register_blueprint(auth_bp, url_prefix="/auth")
