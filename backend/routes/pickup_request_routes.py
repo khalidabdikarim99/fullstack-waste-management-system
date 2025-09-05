@@ -7,6 +7,7 @@ from utils.email_utils import send_status_email
 
 pickup_request_bp = Blueprint("pickup_request_bp", __name__, url_prefix="/pickup-request")
 
+
 # ---------------- User: Create Pickup Request ----------------
 @pickup_request_bp.route("/", methods=["POST"])
 @cross_origin()
@@ -46,6 +47,7 @@ def create_pickup_request():
         }
     }), 201
 
+
 # ---------------- User: Get My Pickup Requests ----------------
 @pickup_request_bp.route("/me", methods=["GET"])
 @cross_origin()
@@ -67,6 +69,7 @@ def get_my_pickups():
         } for r in requests
     ]
     return jsonify(result), 200
+
 
 # ---------------- Collector: Get All Pickup Requests ----------------
 @pickup_request_bp.route("/all", methods=["GET"])
@@ -93,6 +96,7 @@ def get_all_pickups():
     ]
     return jsonify(result), 200
 
+
 # ---------------- Get Single Pickup (User or Collector) ----------------
 @pickup_request_bp.route("/<int:id>", methods=["GET"])
 @cross_origin()
@@ -110,6 +114,7 @@ def get_single_pickup(id):
         "notes": pickup.notes,
         "status": pickup.status
     }), 200
+
 
 # ---------------- User: Edit Pickup ----------------
 @pickup_request_bp.route("/<int:id>", methods=["PUT"])
@@ -142,6 +147,7 @@ def edit_pickup(id):
         }
     }), 200
 
+
 # ---------------- User: Delete Pickup ----------------
 @pickup_request_bp.route("/<int:id>", methods=["DELETE"])
 @cross_origin()
@@ -159,6 +165,7 @@ def delete_pickup(id):
     send_status_email(pickup.user.email, pickup.user.name, "Deleted")
 
     return jsonify({"message": "Your pickup request has been deleted. You may submit a new request anytime."}), 200
+
 
 # ---------------- Collector: Update Pickup Status ----------------
 @pickup_request_bp.route("/<int:id>/status", methods=["PATCH"])

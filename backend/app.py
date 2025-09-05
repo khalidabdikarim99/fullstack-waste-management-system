@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request, make_response
+from flask import Flask, jsonify, request, make_response, current_app
 from flask_cors import CORS
 from config import Config
 from models.user_model import db
@@ -7,6 +7,7 @@ from routes.dashboard_routes import dashboard_bp
 from routes.pickup_request_routes import pickup_request_bp
 from routes.pickup_confirmation_routes import pickup_confirmation_bp
 from routes.pickup_report_routes import pickup_report_bp
+from routes.collector_store_routes import collector_store_bp  # ✅ Import new blueprint
 from flask_jwt_extended import JWTManager
 from flask_migrate import Migrate  # ✅ Import Migrate
 import os
@@ -34,6 +35,7 @@ def create_app():
         methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
     )
 
+    # Handle OPTIONS requests globally
     @app.before_request
     def handle_options():
         if request.method == "OPTIONS":
@@ -51,12 +53,12 @@ def create_app():
     db.init_app(app)
 
     # Initialize Flask-Migrate
-    migrate = Migrate(app, db)  # ✅ This enables migrations
+    migrate = Migrate(app, db)  # ✅ Enables migrations
 
     # Initialize JWT
     jwt = JWTManager(app)
 
-    # JWT error handlers...
+    # JWT error handlers
     @jwt.unauthorized_loader
     def handle_missing_token(err_str):
         return jsonify({"error": "Missing authorization header"}), 401
@@ -81,12 +83,13 @@ def create_app():
     def handle_user_lookup_error(jwt_header, jwt_payload):
         return jsonify({"error": "User not found for this token"}), 404
 
-    # Register Blueprints
+    # ---------------- Register Blueprints ----------------
     app.register_blueprint(auth_bp, url_prefix="/auth")
     app.register_blueprint(dashboard_bp, url_prefix="/dashboard")
     app.register_blueprint(pickup_request_bp, url_prefix="/pickup-request")
     app.register_blueprint(pickup_confirmation_bp, url_prefix="/pickup-confirmation")
     app.register_blueprint(pickup_report_bp, url_prefix="/pickup-report")
+    app.register_blueprint(collector_store_bp, url_prefix="/collector-store")  # ✅ New blueprint registered
 
     # Root route
     @app.route("/")
@@ -94,20 +97,15 @@ def create_app():
         return jsonify({"message": "Waste Management System API is running 🚀"}), 200
 
     # ---------------- Automatic Email Integration ----------------
-    # Wrap the pickup_request_bp endpoints to send emails automatically
-    from flask import current_app
-
     @app.after_request
     def after_request(response):
         """
-        This function will run after every request.
-        It checks for pickup creation or status update and sends email notifications.
+        This function runs after every request.
+        Checks for pickup creation or status update and sends email notifications.
         """
         try:
-            # Only trigger after JSON responses
             if response.is_json:
                 data = response.get_json()
-                # Check if pickup_request data exists
                 pickup_data = data.get("pickup_request") if isinstance(data, dict) else None
                 if pickup_data:
                     user_email = pickup_data.get("user_email")
@@ -120,6 +118,7 @@ def create_app():
         return response
 
     return app
+
 
 if __name__ == "__main__":
     app = create_app()

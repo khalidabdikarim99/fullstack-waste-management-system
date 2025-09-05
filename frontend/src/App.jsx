@@ -61,8 +61,7 @@ import UserLogin from './Users/layout/UserLogin';
 
 // Collector
 import CollectorLayout from './Collector/layout/CollectorLayout';
-import CollectorDashboard from './Collector/pages/Schedule';
-import CollectorSchedule from './Collector/pages/Schedule';
+
 import CollectorNotifications from './Collector/pages/Notifications';
 import CollectorHistory from './Collector/pages/History';
 import CollectorCommunication from './Collector/pages/Communication';
@@ -95,6 +94,7 @@ import EmployerProfile from './Employer/pages/Profile';
 import EmployerLogin from './Employer/layout/EmployerLogin';
 import CollectorPickups from './Collector/pages/CollectorPickups';
 import Communication from './Collector/pages/Communication';
+import Dashboard from './Collector/pages/Dashboard'
 
 // Public layout wrapper
 const PublicRouteWrapper = ({ children }) => (
@@ -182,16 +182,17 @@ const App = () => {
 
        {/* Collector Routes */}
 <Route path="/collector/*" element={<CollectorLayout />}>
-  <Route index element={<CollectorDashboard />} />
-  <Route path="dashboard" element={<CollectorDashboard />} />
+ 
+  <Route path="dashboard" element={<Dashboard />} />
   <Route path="pickups" element={<CollectorPickups />} /> {/* Added Pickup Management */}
-  <Route path="schedule" element={<CollectorSchedule />} />
+ 
   <Route path="notifications" element={<CollectorNotifications />} />
   <Route path="history" element={<CollectorHistory />} />
   <Route path="communication" element={<Communication />} />
   <Route path="earnings" element={<CollectorEarnings />} />
   <Route path="profile" element={<CollectorProfile />} />
   <Route path="dropoffpoints" element={<DropoffLocations />} />
+  
         </Route>
 
         {/* Recycler Routes */}

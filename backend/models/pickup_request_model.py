@@ -1,7 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
-
-# Import db from user_model to use single db instance
 from .user_model import db, User
 
 class PickupRequest(db.Model):
@@ -18,6 +16,13 @@ class PickupRequest(db.Model):
 
     # Relationship back to User
     user = db.relationship("User", back_populates="pickup_requests")
+
+    # Relationship to CollectorStore (one-to-one, only if completed and stored)
+    collector_store_entry = db.relationship(
+        "CollectorStore",
+        back_populates="pickup_request",
+        uselist=False
+    )
 
     def __repr__(self):
         return f"<PickupRequest {self.id} - {self.status}>"
