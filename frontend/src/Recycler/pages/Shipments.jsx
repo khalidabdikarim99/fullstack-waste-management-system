@@ -1,56 +1,158 @@
-import React from 'react';
-import { Button, Chip, Table, TableBody, TableCell, TableHead, TableRow } from '@mui/material';
-import { LocalShipping, CheckCircle, Pending } from '@mui/icons-material';
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import {
+  Box,
+  Typography,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Button,
+} from "@mui/material";
+
+const API_URL = "http://127.0.0.1:5000";
 
 const Shipments = () => {
-  const shipments = [
-    { id: 1, type: 'Plastic', source: 'Collector A', date: '2023-06-15', status: 'pending', weight: '150 kg' },
-    { id: 2, type: 'Metal', source: 'User Direct', date: '2023-06-14', status: 'received', weight: '80 kg' },
-    { id: 3, type: 'E-waste', source: 'Collector B', date: '2023-06-13', status: 'received', weight: '45 kg' }
-  ];
+  const [collectorStore, setCollectorStore] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const token = localStorage.getItem("token");
+
+  const axiosAuth = axios.create({
+    baseURL: API_URL,
+    headers: { Authorization: token ? `Bearer ${token}` : "" },
+  });
+
+  // Fetch collector store entries
+  const fetchCollectorStore = async () => {
+    setLoading(true);
+    try {
+      const res = await axiosAuth.get("/collector-store/");
+      setCollectorStore(res.data);
+    } catch (err) {
+      console.error("Failed to fetch collector store:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCollectorStore();
+  }, []);
+
+  // Determine status
+  const getStatus = (entry) => {
+    if (entry.sent_to_recycler) return "Completed";
+    if (entry.accepted) return "Accepted";
+    return "New";
+  };
+
+  // Accept a shipment (recycler)
+  const handleAccept = async (entryId) => {
+    try {
+      await axiosAuth.patch(`/collector-store/${entryId}`, { accepted: true });
+      setCollectorStore((prev) =>
+        prev.map((entry) =>
+          entry.id === entryId ? { ...entry, accepted: true } : entry
+        )
+      );
+    } catch (err) {
+      console.error("Failed to accept shipment:", err);
+    }
+  };
+
+  // Delete a shipment (recycler)
+  const handleDelete = async (entryId) => {
+    try {
+      // Fully remove from backend
+      await axiosAuth.patch(`/collector-store/${entryId}`, { deleted: true });
+      // Immediately remove from state
+      setCollectorStore((prev) => prev.filter((entry) => entry.id !== entryId));
+    } catch (err) {
+      console.error("Failed to delete shipment:", err);
+    }
+  };
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold text-gray-800">Incoming Shipments</h2>
-        <Button variant="contained" color="primary">
-          New Delivery
-        </Button>
-      </div>
+    <Box p={3}>
+      <Typography variant="h5" gutterBottom>
+        Recycler Dashboard: Shipments Overview
+      </Typography>
 
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell>Type</TableCell>
-            <TableCell>Source</TableCell>
-            <TableCell>Date</TableCell>
-            <TableCell>Weight</TableCell>
-            <TableCell>Status</TableCell>
-            <TableCell>Actions</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {shipments.map((shipment) => (
-            <TableRow key={shipment.id} hover>
-              <TableCell>{shipment.type}</TableCell>
-              <TableCell>{shipment.source}</TableCell>
-              <TableCell>{shipment.date}</TableCell>
-              <TableCell>{shipment.weight}</TableCell>
-              <TableCell>
-                <Chip 
-                  icon={shipment.status === 'received' ? <CheckCircle /> : <Pending />}
-                  label={shipment.status}
-                  color={shipment.status === 'received' ? 'success' : 'warning'}
-                />
-              </TableCell>
-              <TableCell>
-                <Button size="small">Details</Button>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+      {loading ? (
+        <Typography>Loading shipments...</Typography>
+      ) : (
+        <TableContainer component={Paper}>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell>ID</TableCell>
+                <TableCell>Collector Name</TableCell>
+                <TableCell>Email</TableCell>
+                <TableCell>Phone</TableCell>
+                <TableCell>Pickup Location</TableCell>
+                <TableCell>Waste Image</TableCell>
+                <TableCell>Stored Quantity</TableCell>
+                <TableCell>Stored At</TableCell>
+                <TableCell>Status</TableCell>
+                <TableCell>Actions</TableCell>
+              </TableRow>
+            </TableHead>
+
+            <TableBody>
+              {collectorStore.map((entry) => (
+                <TableRow key={entry.id}>
+                  <TableCell>{entry.id}</TableCell>
+                  <TableCell>{entry.collector?.name || "-"}</TableCell>
+                  <TableCell>{entry.collector?.email || "-"}</TableCell>
+                  <TableCell>{entry.collector?.phone_number || "-"}</TableCell>
+                  <TableCell>{entry.pickup_request?.location || "-"}</TableCell>
+                  <TableCell>
+                    {entry.pickup_request?.image_url ? (
+                      <img
+                        src={entry.pickup_request.image_url}
+                        alt="Waste"
+                        width={50}
+                        style={{ borderRadius: "4px" }}
+                      />
+                    ) : (
+                      "-"
+                    )}
+                  </TableCell>
+                  <TableCell>{entry.stored_quantity}</TableCell>
+                  <TableCell>{entry.stored_at}</TableCell>
+                  <TableCell>{getStatus(entry)}</TableCell>
+                  <TableCell>
+                    {!entry.accepted && (
+                      <Button
+                        size="small"
+                        variant="contained"
+                        color="success"
+                        onClick={() => handleAccept(entry.id)}
+                        style={{ marginRight: 5 }}
+                      >
+                        Accept
+                      </Button>
+                    )}
+                    <Button
+                      size="small"
+                      variant="contained"
+                      color="error"
+                      onClick={() => handleDelete(entry.id)}
+                    >
+                      Delete
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
+    </Box>
   );
 };
 

@@ -71,7 +71,7 @@ import CollectorLogin from './Collector/layout/CollectorLogin';
 
 // Recycler
 import RecyclerLayout from './Recycler/layout/RecyclerLayout';
-import RecyclerDashboard from './Recycler/pages/Shipments';
+
 import RecyclerShipments from './Recycler/pages/Shipments';
 import RecyclerProcessing from './Recycler/pages/Processing';
 import RecyclerInventory from './Recycler/pages/Inventory';
@@ -95,6 +95,8 @@ import EmployerLogin from './Employer/layout/EmployerLogin';
 import CollectorPickups from './Collector/pages/CollectorPickups';
 import Communication from './Collector/pages/Communication';
 import Dashboard from './Collector/pages/Dashboard'
+
+import RecyclerDashboard from './Recycler/pages/RecyclerDashboard';
 
 // Public layout wrapper
 const PublicRouteWrapper = ({ children }) => (
@@ -197,8 +199,7 @@ const App = () => {
 
         {/* Recycler Routes */}
         <Route path="/recycler/*" element={<RecyclerLayout />}>
-          <Route index element={<RecyclerDashboard />} />
-          <Route path="dashboard" element={<RecyclerDashboard />} />
+        
           <Route path="shipments" element={<RecyclerShipments />} />
           <Route path="processing" element={<RecyclerProcessing />} />
           <Route path="inventory" element={<RecyclerInventory />} />
@@ -206,6 +207,8 @@ const App = () => {
           <Route path="reports" element={<RecyclerReports />} />
           <Route path="communication" element={<RecyclerCommunication />} />
           <Route path="profile" element={<RecyclerProfile />} />
+          <Route path="dashboard" element={<RecyclerDashboard/>} />
+
         </Route>
 
         {/* Employer Routes */}

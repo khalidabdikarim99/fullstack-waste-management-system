@@ -3,7 +3,6 @@ from email.mime.text import MIMEText
 from config import Config
 
 def send_welcome_email(to_email, name):
-    """Send a welcome email to the newly registered user."""
     try:
         msg = MIMEText(
             f"Hello {name},\n\nWelcome to Waste2Wealth! Your account has been created successfully."
@@ -25,7 +24,6 @@ def send_welcome_email(to_email, name):
 
 
 def send_status_email(to_email, name, status):
-    """Send email notifications based on pickup status."""
     try:
         messages = {
             "Pending": f"Hello {name},\n\nWe apologize for the delay. We are working hard to process your pickup request and will contact you shortly.",
