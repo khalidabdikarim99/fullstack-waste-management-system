@@ -3,7 +3,7 @@ from flask_cors import CORS
 from config import Config
 from models.user_model import db
 from routes import auth_routes, dashboard_routes, pickup_request_routes, pickup_confirmation_routes
-from routes import pickup_report_routes, collector_store_routes, recycler_routes, admin_store_routes, admin_routes
+from routes import pickup_report_routes, collector_store_routes, recycler_routes, admin_store_routes, admin_routes, admin_user_routes
 from flask_jwt_extended import JWTManager
 import os
 from dotenv import load_dotenv
@@ -53,6 +53,7 @@ def create_app():
     app.register_blueprint(recycler_routes.recycler_bp, url_prefix="/recycler")
     app.register_blueprint(admin_store_routes.admin_store_bp, url_prefix="/admin-store")  # <-- admin store
     app.register_blueprint(admin_routes.admin_bp, url_prefix="/admin")  # <-- admin login
+    app.register_blueprint(admin_user_routes.admin_user_bp, url_prefix="/admin/users")  # <-- new admin user routes
 
     # After-request hook for sending pickup status emails
     @app.after_request

@@ -28,7 +28,7 @@ const ManageUsers = () => {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${API_URL}/admin/users`); // Backend route for fetching all users
+      const res = await axios.get(`${API_URL}/admin/users`);
       setUsers(res.data);
     } catch (err) {
       console.error("Error fetching users:", err);
@@ -40,10 +40,10 @@ const ManageUsers = () => {
 
   const handleApprove = async (userId) => {
     try {
-      await axios.put(`${API_URL}/admin/users/approve/${userId}`); // Backend route for approving user
+      await axios.put(`${API_URL}/admin/users/approve/${userId}`);
       setUsers((prev) =>
         prev.map((user) =>
-          user.id === userId ? { ...user, approved: true } : user
+          user.id === userId ? { ...user, status: "accepted" } : user
         )
       );
       Swal.fire("Success", "User approved successfully", "success");
@@ -56,7 +56,7 @@ const ManageUsers = () => {
   const handleDelete = async (userId) => {
     const confirm = await Swal.fire({
       title: "Are you sure?",
-      text: "This user will be permanently deleted!",
+      text: "This user will be marked as deleted!",
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#d33",
@@ -66,8 +66,12 @@ const ManageUsers = () => {
 
     if (confirm.isConfirmed) {
       try {
-        await axios.delete(`${API_URL}/admin/users/${userId}`); // Backend route for deleting user
-        setUsers((prev) => prev.filter((user) => user.id !== userId));
+        await axios.put(`${API_URL}/admin/users/delete/${userId}`);
+        setUsers((prev) =>
+          prev.map((user) =>
+            user.id === userId ? { ...user, status: "deleted" } : user
+          )
+        );
         Swal.fire("Deleted!", "User has been deleted", "success");
       } catch (err) {
         console.error("Error deleting user:", err);
@@ -108,21 +112,29 @@ const ManageUsers = () => {
 
             <TableBody>
               {users.map((user) => (
-                <TableRow key={user.id}>
+                <TableRow
+                  key={user.id}
+                  style={{
+                    backgroundColor:
+                      user.status === "deleted" ? "#f5f5f5" : "transparent",
+                  }}
+                >
                   <TableCell>{user.name}</TableCell>
                   <TableCell>{user.email}</TableCell>
                   <TableCell>{user.role}</TableCell>
                   <TableCell>{user.phone_number}</TableCell>
                   <TableCell>{user.address || "-"}</TableCell>
                   <TableCell>
-                    {user.approved ? (
+                    {user.status === "accepted" ? (
                       <Typography color="green">Approved</Typography>
+                    ) : user.status === "deleted" ? (
+                      <Typography color="red">Deleted</Typography>
                     ) : (
                       <Typography color="orange">Pending</Typography>
                     )}
                   </TableCell>
                   <TableCell align="center">
-                    {!user.approved && (
+                    {user.status === "pending" && (
                       <IconButton
                         color="success"
                         onClick={() => handleApprove(user.id)}
@@ -130,12 +142,14 @@ const ManageUsers = () => {
                         <CheckCircle />
                       </IconButton>
                     )}
-                    <IconButton
-                      color="error"
-                      onClick={() => handleDelete(user.id)}
-                    >
-                      <Delete />
-                    </IconButton>
+                    {user.status !== "deleted" && (
+                      <IconButton
+                        color="error"
+                        onClick={() => handleDelete(user.id)}
+                      >
+                        <Delete />
+                      </IconButton>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}

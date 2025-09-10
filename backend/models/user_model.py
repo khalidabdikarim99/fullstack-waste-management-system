@@ -13,6 +13,7 @@ class User(db.Model):
     role = db.Column(db.String(20), nullable=False, default='user')  # user, collector, recycler, employer
     phone_number = db.Column(db.String(20), nullable=False)
     address = db.Column(db.String(255))
+    status = db.Column(db.String(20), nullable=False, default='pending')  # pending, accepted, deleted
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Relationship to PickupRequest (one-to-many)
@@ -24,4 +25,4 @@ class User(db.Model):
     )
 
     def __repr__(self):
-        return f"<User {self.email} - {self.role}>"
+        return f"<User {self.email} - {self.role} - {self.status}>"
