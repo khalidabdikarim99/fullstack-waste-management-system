@@ -97,6 +97,13 @@ import Communication from './Collector/pages/Communication';
 import Dashboard from './Collector/pages/Dashboard'
 
 import RecyclerDashboard from './Recycler/pages/RecyclerDashboard';
+import Pending from './Admin/pages/Pending';
+import Completed from './Admin/pages/Completed';
+import Complaints from './Admin/pages/Complaints';
+import ProductApproval from './Admin/pages/ProductApproval';
+import OrderTracking from './Admin/pages/OrderTracking';
+import Announcement from './Admin/pages/Announcement';
+import Setting from './Admin/pages/Setting';
 
 // Public layout wrapper
 const PublicRouteWrapper = ({ children }) => (
@@ -164,6 +171,14 @@ const App = () => {
           <Route path="rewards" element={<RewardSystem />} />
           <Route path="support" element={<Feedback />} />
           <Route path="management" element={<AdminManagement />} />
+          <Route path="completed" element={<Completed />} />
+          <Route path="pending" element={<Pending />} />
+          <Route path="complaints" element={<Complaints />} />
+          <Route path="productapprovall" element={<ProductApproval/>} />
+          <Route path="ordertracking" element={<OrderTracking/>} />
+          <Route path="announcement" element={<Announcement/>} />
+          <Route path="setting" element={<Setting/>} />
+
         </Route>
 
         {/* User Routes */}

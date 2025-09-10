@@ -10,7 +10,7 @@ import {
   Description as ContentIcon,
   CardGiftcard as RewardsIcon,
   Support as SupportIcon,
-  Security as AdminIcon,
+  Settings as AdminIcon,
   ChevronLeft,
   ChevronRight,
   ExpandMore,
@@ -37,8 +37,8 @@ const Sidebar = () => {
       icon: <PeopleIcon />,
       path: '/admin/users',
       subItems: [
-        { name: 'All Users', path: '/admin/users/all' },
-        { name: 'Activity Logs', path: '/admin/users/activity' }
+        { name: 'All Users', path: '/admin/manageusers' },
+        { name: 'Complaints', path: '/admin/complaints' }
       ]
     },
     {
@@ -46,9 +46,8 @@ const Sidebar = () => {
       icon: <AssignmentIcon />,
       path: '/admin/pickups',
       subItems: [
-        { name: 'Scheduled', path: '/admin/pickups/scheduled' },
-        { name: 'Pending', path: '/admin/pickups/pending' },
-        { name: 'Completed', path: '/admin/pickups/completed' }
+        { name: 'Pending', path: '/admin/pending' },
+        { name: 'Completed', path: '/admin/completed' }
       ]
     },
     {
@@ -61,9 +60,8 @@ const Sidebar = () => {
       icon: <StoreIcon />,
       path: '/admin/marketplace',
       subItems: [
-        { name: 'Product Approvals', path: '/admin/marketplace/approvals' },
-        { name: 'Order Tracking', path: '/admin/marketplace/orders' },
-        { name: 'Complaints', path: '/admin/marketplace/complaints' }
+        { name: 'Product Approvals', path: '/admin/productapprovall' },
+        { name: 'Order Tracking', path: '/admin/ordertracking' }
       ]
     },
     {
@@ -78,7 +76,7 @@ const Sidebar = () => {
       subItems: [
         { name: 'Training Resources', path: '/admin/content/training' },
         { name: 'DIY Projects', path: '/admin/content/diy' },
-        { name: 'Announcements', path: '/admin/content/announcements' }
+        { name: 'Announcements', path: '/admin/announcement' }
       ]
     },
     {
@@ -92,13 +90,9 @@ const Sidebar = () => {
       path: '/admin/support'
     },
     {
-      name: 'Admin Management',
+      name: 'Settings',
       icon: <AdminIcon />,
-      path: '/admin/management',
-      subItems: [
-        { name: 'Admin Accounts', path: '/admin/management/accounts' },
-        { name: 'Role Permissions', path: '/admin/management/roles' }
-      ]
+      path: '/admin/setting'
     }
   ];
 

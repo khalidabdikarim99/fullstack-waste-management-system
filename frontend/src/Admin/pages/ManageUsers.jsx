@@ -1,11 +1,150 @@
-import React from 'react'
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import Swal from "sweetalert2";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  IconButton,
+  Typography,
+  CircularProgress,
+} from "@mui/material";
+import { Delete, CheckCircle } from "@mui/icons-material";
 
-const Manageusers = () => {
+const API_URL = "http://127.0.0.1:5000";
+
+const ManageUsers = () => {
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get(`${API_URL}/admin/users`); // Backend route for fetching all users
+      setUsers(res.data);
+    } catch (err) {
+      console.error("Error fetching users:", err);
+      Swal.fire("Error", "Failed to fetch users", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleApprove = async (userId) => {
+    try {
+      await axios.put(`${API_URL}/admin/users/approve/${userId}`); // Backend route for approving user
+      setUsers((prev) =>
+        prev.map((user) =>
+          user.id === userId ? { ...user, approved: true } : user
+        )
+      );
+      Swal.fire("Success", "User approved successfully", "success");
+    } catch (err) {
+      console.error("Error approving user:", err);
+      Swal.fire("Error", "Failed to approve user", "error");
+    }
+  };
+
+  const handleDelete = async (userId) => {
+    const confirm = await Swal.fire({
+      title: "Are you sure?",
+      text: "This user will be permanently deleted!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete!",
+    });
+
+    if (confirm.isConfirmed) {
+      try {
+        await axios.delete(`${API_URL}/admin/users/${userId}`); // Backend route for deleting user
+        setUsers((prev) => prev.filter((user) => user.id !== userId));
+        Swal.fire("Deleted!", "User has been deleted", "success");
+      } catch (err) {
+        console.error("Error deleting user:", err);
+        Swal.fire("Error", "Failed to delete user", "error");
+      }
+    }
+  };
+
+  if (loading)
+    return (
+      <div className="flex justify-center mt-6">
+        <CircularProgress />
+      </div>
+    );
+
   return (
-    <div>
-      <h1>manageusers</h1>
-    </div>
-  )
-}
+    <div className="p-4">
+      <Typography variant="h4" gutterBottom>
+        Manage Users
+      </Typography>
 
-export default Manageusers
+      {users.length === 0 ? (
+        <Typography>No users found.</Typography>
+      ) : (
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Name</TableCell>
+                <TableCell>Email</TableCell>
+                <TableCell>Role</TableCell>
+                <TableCell>Phone</TableCell>
+                <TableCell>Address</TableCell>
+                <TableCell>Status</TableCell>
+                <TableCell align="center">Actions</TableCell>
+              </TableRow>
+            </TableHead>
+
+            <TableBody>
+              {users.map((user) => (
+                <TableRow key={user.id}>
+                  <TableCell>{user.name}</TableCell>
+                  <TableCell>{user.email}</TableCell>
+                  <TableCell>{user.role}</TableCell>
+                  <TableCell>{user.phone_number}</TableCell>
+                  <TableCell>{user.address || "-"}</TableCell>
+                  <TableCell>
+                    {user.approved ? (
+                      <Typography color="green">Approved</Typography>
+                    ) : (
+                      <Typography color="orange">Pending</Typography>
+                    )}
+                  </TableCell>
+                  <TableCell align="center">
+                    {!user.approved && (
+                      <IconButton
+                        color="success"
+                        onClick={() => handleApprove(user.id)}
+                      >
+                        <CheckCircle />
+                      </IconButton>
+                    )}
+                    <IconButton
+                      color="error"
+                      onClick={() => handleDelete(user.id)}
+                    >
+                      <Delete />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
+    </div>
+  );
+};
+
+export default ManageUsers;
